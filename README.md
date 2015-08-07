@@ -1,2 +1,4 @@
-# Heimdall
-Package for the monitoring and administration of UGP-GNomEx and UGP/UCGD analysis pipelines.
+
+*Currently in development*
+
+** keeps watch for the onset of Ragnarök while drinking fine mead **

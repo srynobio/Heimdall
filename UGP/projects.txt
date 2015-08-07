@@ -1,0 +1,423 @@
+$VAR1 = {
+          '6070:U29R' => {
+                           'lab' => 'Bonkowsky, Joshua',
+                           'project' => 'U29R',
+                           'project_name' => 'Baylor_Probands',
+                           'folder' => '2015-02-02_U29R_Baylor_Probands'
+                         },
+          '6011:9368R' => {
+                            'lab' => 'Manuck, Tracy',
+                            'project' => '9368R',
+                            'project_name' => 'K23_Indocin_samples',
+                            'folder' => '2014-02-20_9368R_K23_Indocin_samples'
+                          },
+          '6055:9816R' => {
+                            'lab' => 'Guthery, Steve',
+                            'project' => '9816R',
+                            'project_name' => 'Immunochip_CCHMC',
+                            'folder' => '2014-10-08_9816R_Immunochip_CCHMC'
+                          },
+          '6047:10826R' => {
+                             'lab' => 'Schiffman, Joshua',
+                             'project' => '10826R',
+                             'project_name' => 'Experiments_for_Clint_Mason',
+                             'folder' => '2014-08-25_10826R_Experiments_for_Clint_Mason'
+                           },
+          '6012:9372R' => {
+                            'lab' => 'Manuck, Tracy',
+                            'project' => '9372R',
+                            'project_name' => 'K23_Indocin_samples',
+                            'folder' => '2014-02-20_9372R_K23_Indocin_samples'
+                          },
+          '6048:10633R' => {
+                             'lab' => 'Schiffman, Joshua',
+                             'project' => '10633R',
+                             'project_name' => 'Experiments_for_Clint_Mason',
+                             'folder' => '2014-08-25_10633R_Experiments_for_Clint_Mason'
+                           },
+          '6108:U111R' => {
+                            'lab' => 'Coon, Hilary',
+                            'project' => 'U111R',
+                            'project_name' => 'Coon_Suicide_Psychosis',
+                            'folder' => '2015-07-14_U111R_Coon_Suicide_Psychosis'
+                          },
+          '6079:10979R1' => {
+                              'lab' => 'Guthery, Steve',
+                              'project' => '10979R1',
+                              'project_name' => 'Haloplex_resequencing',
+                              'folder' => '2015-05-22_10979R1_Haloplex_resequencing'
+                            },
+          '6056:9841R' => {
+                            'lab' => 'Guthery, Steve',
+                            'project' => '9841R',
+                            'project_name' => 'Immunochip_CCHMC',
+                            'folder' => '2014-10-08_9841R_Immunochip_CCHMC'
+                          },
+          '6030:9032R' => {
+                            'lab' => 'Guthery, Steve',
+                            'project' => '9032R',
+                            'project_name' => 'PHC_Exome_Grant',
+                            'folder' => '2014-05-12_9032R_PHC_Exome_Grant'
+                          },
+          '6029:10592R' => {
+                             'lab' => 'Guthery, Steve',
+                             'project' => '10592R',
+                             'project_name' => 'Targeted_Crohns_pilot',
+                             'folder' => '2014-05-12_10592R_Targeted_Crohns_pilot'
+                           },
+          '6034:10718R' => {
+                             'lab' => 'Kumanovics, Attila',
+                             'project' => '10718R',
+                             'project_name' => 'Experiments_for_Attila_Kumanovics',
+                             'folder' => '2014-06-25_10718R_Experiments_for_Attila_Kumanovics'
+                           },
+          '6054:11033R' => {
+                             'lab' => 'Kumanovics, Attila',
+                             'project' => '11033R',
+                             'project_name' => 'Experiments_for_Attila_Kumanovics',
+                             'folder' => '2014-10-07_11033R_Experiments_for_Attila_Kumanovics'
+                           },
+          '6081:10994R1' => {
+                              'lab' => 'Guthery, Steve',
+                              'project' => '10994R1',
+                              'project_name' => 'Haloplex_resequencing',
+                              'folder' => '2015-05-22_10994R1_Haloplex_resequencing'
+                            },
+          '6076:11404R1' => {
+                              'lab' => 'Kumanovics, Attila',
+                              'project' => '11404R1',
+                              'project_name' => 'CVID',
+                              'folder' => '2015-03-20_11404R1_CVID'
+                            },
+          '6006:9055R' => {
+                            'lab' => 'Cannon-Albright, Lisa',
+                            'project' => '9055R',
+                            'project_name' => 'prca_sequencing_for_ICPCG_4_regions',
+                            'folder' => '2014-02-11_9055R_prca_sequencing_for_ICPCG_4_regions'
+                          },
+          '6085:11643R' => {
+                             'lab' => 'Guthery, Steve',
+                             'project' => '11643R',
+                             'project_name' => 'Crohns_trio',
+                             'folder' => '2015-06-12_11643R_Crohns_trio'
+                           },
+          '6017:10462R' => {
+                             'lab' => 'Tavtigian, Sean',
+                             'project' => '10462R',
+                             'project_name' => '2013_Pilot_Project',
+                             'folder' => '2014-02-24_10462R_2013_Pilot_Project'
+                           },
+          '6042:10953R' => {
+                             'lab' => 'Feng, Bingjian',
+                             'project' => '10953R',
+                             'project_name' => 'Experiments_for_Bing_Jian_Feng',
+                             'folder' => '2014-07-30_10953R_Experiments_for_Bing_Jian_Feng'
+                           },
+          '6014:10390R' => {
+                             'lab' => 'Schiffman, Joshua',
+                             'project' => '10390R',
+                             'project_name' => 'Experiments_for_Clint_Mason',
+                             'folder' => '2014-02-24_10390R_Experiments_for_Clint_Mason'
+                           },
+          '6026:10515R' => {
+                             'lab' => 'Guthery, Steve',
+                             'project' => '10515R',
+                             'project_name' => 'Utah_Genome_Project_Exomes',
+                             'folder' => '2014-05-12_10515R_Utah_Genome_Project_Exomes'
+                           },
+          '6041:10956R' => {
+                             'lab' => 'Kumanovics, Attila',
+                             'project' => '10956R',
+                             'project_name' => 'Experiments_for_Attila_Kumanovics',
+                             'folder' => '2014-07-28_10956R_Experiments_for_Attila_Kumanovics'
+                           },
+          '6031:10848R' => {
+                             'lab' => 'Coon, Hilary',
+                             'project' => '10848R',
+                             'project_name' => 'Experiments_for_Hailey_Hodel',
+                             'folder' => '2014-06-09_10848R_Experiments_for_Hailey_Hodel'
+                           },
+          '6083:10515R' => {
+                             'lab' => 'Guthery, Steve',
+                             'project' => '10515R',
+                             'project_name' => 'IBD_EXOME_PILOT',
+                             'folder' => '2015-05-22_10515R_IBD_EXOME_PILOT'
+                           },
+          '6082:11553R1' => {
+                              'lab' => 'Guthery, Steve',
+                              'project' => '11553R1',
+                              'project_name' => 'Haloplex_resequencing',
+                              'folder' => '2015-05-22_11553R1_Haloplex_resequencing'
+                            },
+          '6005:10336R' => {
+                             'lab' => 'Camp, Nicola',
+                             'project' => '10336R',
+                             'project_name' => 'Experiments_for_Nicola_Camp',
+                             'folder' => '2014-02-11_10336R_Experiments_for_Nicola_Camp'
+                           },
+          '6002:10429R' => {
+                             'lab' => 'ChILDReN, .',
+                             'project' => '10429R',
+                             'project_name' => 'ChILDReN_Lab',
+                             'folder' => '2014-01-08_10429R_ChILDReN_Lab'
+                           },
+          '6016:9915R' => {
+                            'lab' => 'Scholand, Mary Beth',
+                            'project' => '9915R',
+                            'project_name' => 'IPF_2_7_13',
+                            'folder' => '2014-02-24_9915R_IPF_2_7_13'
+                          },
+          '6114:U2R' => {
+                          'lab' => 'Guthery, Steve',
+                          'project' => 'U2R',
+                          'project_name' => 'Swedish_Schizophrenia_',
+                          'folder' => '2015-07-27_U2R_Swedish_Schizophrenia_'
+                        },
+          '6064:U27R' => {
+                           'lab' => 'Guthery, Steve',
+                           'project' => 'U27R',
+                           'project_name' => 'STAT1',
+                           'folder' => '2015-01-05_U27R_STAT1'
+                         },
+          '6018:10470R' => {
+                             'lab' => 'Tavtigian, Sean',
+                             'project' => '10470R',
+                             'project_name' => '2013_Pilot_Project',
+                             'folder' => '2014-02-24_10470R_2013_Pilot_Project'
+                           },
+          '6013:10389R' => {
+                             'lab' => 'Schiffman, Joshua',
+                             'project' => '10389R',
+                             'project_name' => 'Experiments_for_Clint_Mason',
+                             'folder' => '2014-02-20_10389R_Experiments_for_Clint_Mason'
+                           },
+          '6062:10891R' => {
+                             'lab' => 'Hunt, Steve',
+                             'project' => '10891R',
+                             'project_name' => '120_MOS_Exome',
+                             'folder' => '2014-12-09_10891R_120_MOS_Exome'
+                           },
+          '6045:10391R' => {
+                             'lab' => 'Schiffman, Joshua',
+                             'project' => '10391R',
+                             'project_name' => 'Experiments_for_Clint_Mason',
+                             'folder' => '2014-08-06_10391R_Experiments_for_Clint_Mason'
+                           },
+          '6084:10404R1' => {
+                              'lab' => 'Guthery, Steve',
+                              'project' => '10404R1',
+                              'project_name' => 'Haloplex_resequencing',
+                              'folder' => '2015-05-22_10404R1_Haloplex_resequencing'
+                            },
+          '6069:11279R' => {
+                             'lab' => 'Hunt, Steve',
+                             'project' => '11279R',
+                             'project_name' => 'Thin_Study',
+                             'folder' => '2015-02-02_11279R_Thin_Study'
+                           },
+          '6037:10878R' => {
+                             'lab' => 'Hunt, Steve',
+                             'project' => '10878R',
+                             'project_name' => 'Thin_Study',
+                             'folder' => '2014-07-16_10878R_Thin_Study'
+                           },
+          '6078:11236R1' => {
+                              'lab' => 'Guthery, Steve',
+                              'project' => '11236R1',
+                              'project_name' => 'Haloplex_resequencing',
+                              'folder' => '2015-05-21_11236R1_Haloplex_resequencing'
+                            },
+          '6028:9329R' => {
+                            'lab' => 'Guthery, Steve',
+                            'project' => '9329R',
+                            'project_name' => 'PHC_Exome_Grant',
+                            'folder' => '2014-05-12_9329R_PHC_Exome_Grant'
+                          },
+          '6049:11079R' => {
+                             'lab' => 'Guthery, Steve',
+                             'project' => '11079R',
+                             'project_name' => 'Utah_Genome_Project_Exomes',
+                             'folder' => '2014-08-26_11079R_Utah_Genome_Project_Exomes'
+                           },
+          '6004:10419R' => {
+                             'lab' => 'Guthery, Steve',
+                             'project' => '10419R',
+                             'project_name' => 'Utah_Genome_Project_Exomes',
+                             'folder' => '2014-02-11_10419R_Utah_Genome_Project_Exomes'
+                           },
+          '6053:10895R' => {
+                             'lab' => 'Tavtigian, Sean',
+                             'project' => '10895R',
+                             'project_name' => '2013_Pilot_Project',
+                             'folder' => '2014-09-04_10895R_2013_Pilot_Project'
+                           },
+          '6032:8772R' => {
+                            'lab' => 'Guthery, Steve',
+                            'project' => '8772R',
+                            'project_name' => 'IBD_EXOME_PILOT',
+                            'folder' => '2014-06-09_8772R_IBD_EXOME_PILOT'
+                          },
+          '6058:10974R' => {
+                             'lab' => 'Schiffman, Joshua',
+                             'project' => '10974R',
+                             'project_name' => 'Experiments_for_Clint_Mason',
+                             'folder' => '2014-10-09_10974R_Experiments_for_Clint_Mason'
+                           },
+          '6067:11283R' => {
+                             'lab' => 'Kumanovics, Attila',
+                             'project' => '11283R',
+                             'project_name' => 'UGP',
+                             'folder' => '2015-01-13_11283R_UGP'
+                           },
+          '6039:10859R' => {
+                             'lab' => 'Kumanovics, Attila',
+                             'project' => '10859R',
+                             'project_name' => 'Experiments_for_Attila_Kumanovics',
+                             'folder' => '2014-07-17_10859R_Experiments_for_Attila_Kumanovics'
+                           },
+          '6068:11239R' => {
+                             'lab' => 'Kumanovics, Attila',
+                             'project' => '11239R',
+                             'project_name' => 'UGP',
+                             'folder' => '2015-01-13_11239R_UGP'
+                           },
+          '6107:U110R' => {
+                            'lab' => 'UCGD, .',
+                            'project' => 'U110R',
+                            'project_name' => 'Bowles_Pediatric_Cardio',
+                            'folder' => '2015-07-14_U110R_Bowles_Pediatric_Cardio'
+                          },
+          '6073:11366R1' => {
+                              'lab' => 'Guthery, Steve',
+                              'project' => '11366R1',
+                              'project_name' => 'Jan2015',
+                              'folder' => '2015-02-05_11366R1_Jan2015'
+                            },
+          '6027:9338R' => {
+                            'lab' => 'Guthery, Steve',
+                            'project' => '9338R',
+                            'project_name' => 'PHC_Exome_Grant',
+                            'folder' => '2014-05-12_9338R_PHC_Exome_Grant'
+                          },
+          '6113:U1R' => {
+                          'lab' => 'UCGD, .',
+                          'project' => 'U1R',
+                          'project_name' => 'WashU_Test_Data',
+                          'folder' => '2015-07-27_U1R_WashU_Test_Data'
+                        },
+          '6121:U6R' => {
+                          'lab' => 'Yandell, Mark',
+                          'project' => 'U6R',
+                          'project_name' => 'SRTEST2',
+                          'folder' => '2015-07-30_U6R_SRTEST2'
+                        },
+          '6111:10792R' => {
+                             'lab' => 'Coon, Hilary',
+                             'project' => '10792R',
+                             'project_name' => 'Experiments_for_Hilary_Coon',
+                             'folder' => '2015-07-17_10792R_Experiments_for_Hilary_Coon'
+                           },
+          '6066:11058R' => {
+                             'lab' => 'Kumanovics, Attila',
+                             'project' => '11058R',
+                             'project_name' => 'UGP',
+                             'folder' => '2015-01-13_11058R_UGP'
+                           },
+          '6057:10248R' => {
+                             'lab' => 'Guthery, Steve',
+                             'project' => '10248R',
+                             'project_name' => 'Immunochip_CCHMC',
+                             'folder' => '2014-10-08_10248R_Immunochip_CCHMC'
+                           },
+          '6003:9911R' => {
+                            'lab' => 'Neklason, Deb',
+                            'project' => '9911R',
+                            'project_name' => 'Colon_and_Carcinoid_SNP_chips',
+                            'folder' => '2014-02-11_9911R_Colon_and_Carcinoid_SNP_chips'
+                          },
+          '6050:11102R' => {
+                             'lab' => 'Tavtigian, Sean',
+                             'project' => '11102R',
+                             'project_name' => '2013_Pilot_Project',
+                             'folder' => '2014-09-03_11102R_2013_Pilot_Project'
+                           },
+          '6106:U109R' => {
+                            'lab' => 'UCGD, .',
+                            'project' => 'U109R',
+                            'project_name' => 'CDH',
+                            'folder' => '2015-07-10_U109R_CDH'
+                          },
+          '6061:11140R' => {
+                             'lab' => 'Kumanovics, Attila',
+                             'project' => '11140R',
+                             'project_name' => 'UGP',
+                             'folder' => '2014-12-01_11140R_UGP'
+                           },
+          '6019:10249R' => {
+                             'lab' => 'Tavtigian, Sean',
+                             'project' => '10249R',
+                             'project_name' => '2013_Pilot_Project',
+                             'folder' => '2014-02-24_10249R_2013_Pilot_Project'
+                           },
+          '6021:10656R' => {
+                             'lab' => 'Guthery, Steve',
+                             'project' => '10656R',
+                             'project_name' => 'Utah_Genome_Project_Exomes',
+                             'folder' => '2014-03-10_10656R_Utah_Genome_Project_Exomes'
+                           },
+          '6080:10957R1' => {
+                              'lab' => 'Guthery, Steve',
+                              'project' => '10957R1',
+                              'project_name' => 'Haloplex_resequencing',
+                              'folder' => '2015-05-22_10957R1_Haloplex_resequencing'
+                            },
+          '6015:9076R' => {
+                            'lab' => 'Scholand, Mary Beth',
+                            'project' => '9076R',
+                            'project_name' => 'IPF_3_13_12',
+                            'folder' => '2014-02-24_9076R_IPF_3_13_12'
+                          },
+          '6044:10388R' => {
+                             'lab' => 'Schiffman, Joshua',
+                             'project' => '10388R',
+                             'project_name' => 'Experiments_for_Clint_Mason',
+                             'folder' => '2014-08-06_10388R_Experiments_for_Clint_Mason'
+                           },
+          '6043:10890R' => {
+                             'lab' => 'Feng, Bingjian',
+                             'project' => '10890R',
+                             'project_name' => 'Experiments_for_Bing_Jian_Feng',
+                             'folder' => '2014-07-30_10890R_Experiments_for_Bing_Jian_Feng'
+                           },
+          '6063:U26R' => {
+                           'lab' => 'Lyon, Gholson',
+                           'project' => 'U26R',
+                           'project_name' => 'Experiments_for_Jason_ORawe',
+                           'folder' => '2014-12-16_U26R_Experiments_for_Jason_ORawe'
+                         },
+          '6033:9958R' => {
+                            'lab' => 'Guthery, Steve',
+                            'project' => '9958R',
+                            'project_name' => 'Experiments_for_Steve_Guthery',
+                            'folder' => '2014-06-09_9958R_Experiments_for_Steve_Guthery'
+                          },
+          '6020:10349R' => {
+                             'lab' => 'Tristani-Firouzi, Martin',
+                             'project' => '10349R',
+                             'project_name' => 'Familial_AF',
+                             'folder' => '2014-02-24_10349R_Familial_AF'
+                           },
+          '6060:11080R' => {
+                             'lab' => 'Kumanovics, Attila',
+                             'project' => '11080R',
+                             'project_name' => 'UGP',
+                             'folder' => '2014-12-01_11080R_UGP'
+                           },
+          '6110:11563R' => {
+                             'lab' => 'Coon, Hilary',
+                             'project' => '11563R',
+                             'project_name' => 'Experiments_for_Leslie_Jerominski',
+                             'folder' => '2015-07-17_11563R_Experiments_for_Leslie_Jerominski'
+                           }
+        };
+
