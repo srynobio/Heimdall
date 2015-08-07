@@ -47,6 +47,13 @@ task 'rync_to_islion', group => 'chpc', sub {
 
 ##------------------------------------------------##
 
+desc "CHPC: Check the status of the nantomics xfer directory.";
+task 'nantomics_data_watch', group =>'chpc', sub {
+    Heimdall::CHPC::nantomics_data_watch();
+};
+
+##------------------------------------------------##
+
 
 
 
