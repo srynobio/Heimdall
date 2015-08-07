@@ -1,4 +1,5 @@
 use Rex -feature => ['1.0'];
+
 # Watch.pl
 
 require Heimdall::CHPC;
@@ -20,45 +21,37 @@ EOD
 ##------------------------------------------------##
 
 desc "GNomEx: Look for newly added experiments.";
-task "experiments", sub {
+task "experiments", 
+sub {
     Heimdall::GNomEx::experiments();
-}; 
+};
 
 ##------------------------------------------------##
 
 desc "CHPC: Look for newly created experiment directories and copy to lustre";
-task "directories", group => 'chpc', sub {
+task "directories",
+  group => 'chpc',
+  sub {
     Heimdall::CHPC::directories();
-};
-
-##------------------------------------------------##
-
-desc "CHPC: Run rsync of lustre directory to islion (AnalysisData)";
-task 'rync_to_lustre', group => 'chpc', sub {
-    Heimdall::CHPC::rsync_to_lustre();
-};
+  };
 
 ##------------------------------------------------##
 
 desc "CHPC: Run rsync of islion directory to lustre (ExperimentData)";
-task 'rync_to_islion', group => 'chpc', sub {
+task 'rync_to_islion',
+  group => 'chpc',
+  sub {
     Heimdall::CHPC::rsync_to_islion();
-};
+  };
 
 ##------------------------------------------------##
 
 desc "CHPC: Check the status of the nantomics xfer directory.";
-task 'nantomics_data_watch', group =>'chpc', sub {
+task 'nantomics_data_watch',
+  group => 'chpc',
+  sub {
     Heimdall::CHPC::nantomics_data_watch();
-};
+  };
 
 ##------------------------------------------------##
-
-
-
-
-
-
-
-
 
