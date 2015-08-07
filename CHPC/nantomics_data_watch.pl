@@ -4,11 +4,14 @@ use strict;
 use warnings;
 use feature 'say';
 use autodie;
+use lib '../lib';
 use Heimdall;
+use IO::Dir;
 
 my $watch = Heimdall->new();
 
 ## set up paths.
+## add to cfg file.
 my $path    = '/scratch/ucgd/lustre/nantomics-transfer';
 my $process = '/scratch/ucgd/lustre/nantomics-transfer/Process_Data';
 my $xfer    = '/scratch/ucgd/lustre/nantomics-transfer/xfer';
@@ -22,7 +25,7 @@ unless ( $path and $process and $xfer ) {
 }
 
 ## check for open fileshandles.
-my @xfers = `lsof +D $nantomic_xfer`;
+my @xfers = `lsof +D $xfer`;
 chomp @xfers;
 $watch->info_log("No current transfering files") if ( !@xfers );
 
