@@ -38,10 +38,19 @@ task "directories",
 ##------------------------------------------------##
 
 desc "CHPC: Run rsync of islion directory to lustre (ExperimentData)";
-task 'rync_to_islion',
+task 'rsync_to_islion',
   group => 'chpc',
   sub {
     Heimdall::CHPC::rsync_to_islion();
+  };
+
+##------------------------------------------------##
+
+desc "CHPC: Run rsync of lustre directory to islion (AnalysisData).";
+task 'rsync_to_lustre',
+  group => 'chpc',
+  sub {
+    Heimdall::CHPC::rsync_to_lustre();
   };
 
 ##------------------------------------------------##
@@ -52,6 +61,16 @@ task 'nantomics_data_watch',
   sub {
     Heimdall::CHPC::nantomics_data_watch();
   };
+
+##------------------------------------------------##
+
+desc "CHPC: Check the status of the test xfer directory.";
+task 'test_data_watch',
+  group => 'chpc',
+  sub {
+    Heimdall::CHPC::test_data_watch();
+  };
+
 
 ##------------------------------------------------##
 

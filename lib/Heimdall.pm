@@ -6,10 +6,6 @@ use autodie;
 use Moo;
 use DBI;
 
-## Logging
-## cfg file.
-open(my $LOG, '>>', '../watch.log');
-
 ##------------------------------------------------------##
 ##--- ATTS ---------------------------------------------## 
 ##------------------------------------------------------##
@@ -40,23 +36,33 @@ sub dbh {
 
 ##------------------------------------------------------##
 
+sub log_write {
+    my ($self, $message) = @_;
+
+    open(my $FH, '>>', '../watch.log');
+    say $FH $message;
+    close $FH;
+}
+
+##------------------------------------------------------##
+
 sub info_log {
     my ($self, $message) = @_;
-    say $LOG "[" . $self->time . "]" . " INFO - $message";
+    $self->log_write("[" . $self->time . "]" . " INFO - $message");
 }
 
 ##------------------------------------------------------##
 
 sub error_log {
     my ($self, $message) = @_;
-    say $LOG "[" . $self->time . "]" . " ERROR - $message";
+    $self->log_write("[" . $self->time . "]" . " ERROR - $message");
 }
 
 ##------------------------------------------------------##
 
 sub update_log {
     my ($self, $message) = @_;
-    say $LOG "[" . $self->time . "]" . " UPDATE - $message";
+    $self->log_write("[" . $self->time . "]" . " UPDATE - $message");
 } 
 
 ##------------------------------------------------------##

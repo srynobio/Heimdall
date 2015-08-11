@@ -1,16 +1,17 @@
 #!/usr/bin/env perl
-# new_experiment_check
+# experiments.pl
 use strict;
 use warnings;
 use DBI;
 use XML::Simple;
+use File::Path;
 use feature 'say';
 use lib '../lib';
 use Heimdall;
 
 # Get base utilities
 my $watch = Heimdall->new();
-my $dbh = $watch->dbh;
+my $dbh   = $watch->dbh;
 
 check_request_db();
 
@@ -89,8 +90,9 @@ sub _new_project_check {
             }
         }
     }
+
     # this unless will be the "no new data" exit point.
-    unless (keys %{$experiment_hash}) { 
+    unless ( keys %{$experiment_hash} ) {
         $watch->info_log("No new experiments");
     }
     return $experiment_hash;
@@ -124,7 +126,7 @@ sub _create_gnomex_analysis {
         # run and parse result.
         my $result = `$cmd`;
 
-        unless (length $result > 1) {
+        unless ( length $result > 1 ) {
             push @errors, "project $project could not be created";
             next;
         }
@@ -134,27 +136,46 @@ sub _create_gnomex_analysis {
         my $idAnalysis = $ref->{idAnalysis};
 
         my $new_dir = "$filepath/$folder";
-        mkdir $new_dir unless ( -d $new_dir );
+        if ( !-d $new_dir ) {
+            make_path(
+                "$filepath/$folder",
+                "$filepath/$folder/Data",
+                "$filepath/$folder/Data/PolishedBams",
+                "$filepath/$folder/Data/Primary_Data",
+                "$filepath/$folder/QC",
+                "$filepath/$folder/Analysis",
+                "$filepath/$folder/Reports/flagstat",
+                "$filepath/$folder/Reports/stats",
+                "$filepath/$folder/Reports/fastqc",
+                "$filepath/$folder/VCF/GVCFs",
+                "$filepath/$folder/VCF/Complete",
+                {
+                    owner => 'ugpuser',
+                    group => 'ugpuser'
+                }
+            );
+        }
 
-        unless ( -d $new_dir ) {
+        if ( !-d $new_dir ) {
             push @errors, "directory $new_dir could not be created";
             next;
         }
 
         # Collect all the new project_id to add to UGP table.
-        push @project_info, [$new, $new_dir, $project, $idAnalysis];
+        push @project_info, [ $new, $new_dir, $project, $idAnalysis ];
     }
 
     ## Report errors
-    map { say $watch->error_log($_) } @errors; 
+    map { say $watch->error_log($_) } @errors;
 
     # update UGP.check_project_id.
     my $sth = $dbh->prepare(
         "INSERT INTO UGP (check_project_id, AnalysisDataPath, project, AnalysisID) VALUES (?,?,?,?);"
     );
     foreach my $id (@project_info) {
-        $sth->execute($id->[0], $id->[1], $id->[2], $id->[3] );
-        $watch->update_log("New Analysis: $id->[1] created for project: $id->[2]");
+        $sth->execute( $id->[0], $id->[1], $id->[2], $id->[3] );
+        $watch->update_log(
+            "New Analysis: $id->[1] created for project: $id->[2]");
     }
 }
 
@@ -164,8 +185,7 @@ sub _add_project_id {
     my $experiment_hash = shift;
 
     foreach my $exp ( keys %{$experiment_hash} ) {
-        my $sth =
-          $dbh->prepare("INSERT INTO UGP (check_project_id) VALUE(?)");
+        my $sth = $dbh->prepare("INSERT INTO UGP (check_project_id) VALUE(?)");
         $sth->execute($exp);
     }
 }

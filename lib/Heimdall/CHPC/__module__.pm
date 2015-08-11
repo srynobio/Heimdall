@@ -33,11 +33,11 @@ task rsync_to_lustre => sub {
 
 ##------------------------------------------------##
 
-task rsync_to_islion => {
+task rsync_to_islion => sub {
     my $command = "perl rsync_to_islion.pl";
-      my $run   = run "rsync_lustre",
-    command => $command,
-    cwd     => $chpc_path;
+    my $run     = run "rsync_islion",
+        command => $command,
+        cwd     => $chpc_path;
 };
 
 ##------------------------------------------------##
@@ -48,6 +48,16 @@ task nantomics_data_watch => sub {
       command => $command,
       cwd     => $chpc_path;
 };
+
+##------------------------------------------------##
+
+task test_data_watch => sub {
+    my $command = 'perl test_data_watch.pl';
+    my $run     = run 'data_watch',
+      command => $command,
+      cwd     => $chpc_path;
+};
+
 
 ##------------------------------------------------##
 
