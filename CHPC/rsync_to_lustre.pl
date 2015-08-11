@@ -18,7 +18,7 @@ my $islion_rsync = '/uufs/chpc.utah.edu/common/home/ucgdstor/Repository';
 $watch->info_log("rsync of ExperimentData form islion to lustre starting");
 
 chdir $islion_rsync;
-my $rsync = "rsync -nvr --partial ExperimentData $lustre_rsync/ExperimentData";
+my $rsync = "rsync -nvr --delete --partial ExperimentData $lustre_rsync/ExperimentData";
 my $sync = `$rsync`;
 
 $watch->info_log("rsync of ExperimentData from islion to lustre complete");
