@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use DBI;
 use XML::Simple;
-use File::Path;
+use File::Path qw(make_path);
 use feature 'say';
 use lib '../lib';
 use Heimdall;
@@ -126,7 +126,7 @@ sub _create_gnomex_analysis {
         # run and parse result.
         my $result = `$cmd`;
 
-        unless ( length $result > 1 ) {
+        if ( ! length $result > 1 ) {
             push @errors, "project $project could not be created";
             next;
         }
@@ -136,19 +136,19 @@ sub _create_gnomex_analysis {
         my $idAnalysis = $ref->{idAnalysis};
 
         my $new_dir = "$filepath/$folder";
-        if ( !-d $new_dir ) {
+        if ( ! -d $new_dir ) {
             make_path(
-                "$filepath/$folder",
-                "$filepath/$folder/Data",
-                "$filepath/$folder/Data/PolishedBams",
-                "$filepath/$folder/Data/Primary_Data",
-                "$filepath/$folder/QC",
-                "$filepath/$folder/Analysis",
-                "$filepath/$folder/Reports/flagstat",
-                "$filepath/$folder/Reports/stats",
-                "$filepath/$folder/Reports/fastqc",
-                "$filepath/$folder/VCF/GVCFs",
-                "$filepath/$folder/VCF/Complete",
+                "$new_dir",
+                "$new_dir/Data",
+                "$new_dir/Data/PolishedBams",
+                "$new_dir/Data/Primary_Data",
+                "$new_dir/QC",
+                "$new_dir/Analysis",
+                "$new_dir/Reports/flagstat",
+                "$new_dir/Reports/stats",
+                "$new_dir/Reports/fastqc",
+                "$new_dir/VCF/GVCFs",
+                "$new_dir/VCF/Complete",
                 {
                     owner => 'ugpuser',
                     group => 'ugpuser'
@@ -156,7 +156,7 @@ sub _create_gnomex_analysis {
             );
         }
 
-        if ( !-d $new_dir ) {
+        if ( ! -d $new_dir ) {
             push @errors, "directory $new_dir could not be created";
             next;
         }
