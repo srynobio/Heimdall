@@ -14,6 +14,7 @@ my $watch = Heimdall->new();
 my $dbh   = $watch->dbh;
 
 check_request_db();
+_analysis_id_name_report();
 
 ## ------------------------------------------------------------ ##
 
@@ -177,6 +178,29 @@ sub _create_gnomex_analysis {
         $watch->update_log(
             "New Analysis: $id->[1] created for project: $id->[2]");
     }
+}
+
+## ------------------------------------------------------------ ##
+
+sub _analysis_id_name_report {
+
+    ### from Lab table get name for analysis creation.
+    my $analysis_statement = "select number, name, idLab from Analysis;";
+    my $name_ref           = $dbh->selectall_arrayref($analysis_statement);
+
+    open( my $FH, '>', 'analysis_id_name.txt' );
+
+    foreach my $project ( @{$name_ref} ) {
+        my $number = $project->[0];
+        my $name   = $project->[1];
+        my $lab    = $project->[2];
+        next unless ( $number and $name and $lab );
+
+        ## currently only report UCGD projects.
+        next unless ( $lab eq '22' );
+        say $FH "$name\t$number";
+    }
+    close $FH;
 }
 
 ## ------------------------------------------------------------ ##

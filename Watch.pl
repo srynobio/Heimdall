@@ -7,6 +7,8 @@ require Heimdall::GNomEx;
 
 logging to_file => 'watch.log';
 
+my $chpc_path = '/uufs/chpc.utah.edu/common/home/u0413537/Heimdall/CHPC';
+
 ##------------------------------------------------##
 
 desc "Documentation on the use of Heimdall";
@@ -73,4 +75,15 @@ task 'test_data_watch',
 
 
 ##------------------------------------------------##
+
+desc "UGP/CHPC: Will upload the current analysis_id_name.txt file to CHPC" .
+    " running experiment will do this automatically.";
+task "project_info_upload",
+  group => 'chpc',
+  sub {
+    upload "UGP/analysis_id_name.txt", "$chpc_path";
+};
+
+## ------------------------------------------------------------ ##
+
 

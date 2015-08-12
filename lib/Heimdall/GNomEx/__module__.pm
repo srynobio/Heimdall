@@ -16,9 +16,11 @@ my $ugp_path = '/home/srynearson/Heimdall/UGP';
 
 task experiments => sub {
     my $command = 'perl experiments.pl';
-    my $test    = run "check",
+    run "check",
       command => $command,
       cwd     => $ugp_path;
+
+    do_task "project_info_upload",;
 };
 
 ## ------------------------------------------------------------ ##
