@@ -20,7 +20,7 @@ task experiments => sub {
       command => $command,
       cwd     => $ugp_path;
 
-    do_task "project_info_upload",;
+    do_task "analysis_info_upload",;
 };
 
 ## ------------------------------------------------------------ ##
