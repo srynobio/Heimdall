@@ -19,7 +19,7 @@ Synopsis:
 Description:
     Will search the Lustre Repository for GNomEx AnalysisData ids and create a symlink.
 
-    Using the -list_project option will list all available UCGD/UGP projects.
+    Using the -list_project option will list all available UCGD/UGP projects and there status.
     
 Required options:
     -analysis_id    GNomEx AnalysisData id 
@@ -34,7 +34,7 @@ my ( $analysis_id, $list, $output );
 GetOptions(
     "analysis_id=s" => \$analysis_id,
     "list_projects" => \$list,
-    "output_dir"    => \$output,
+    "output_dir=s"    => \$output,
 );
 
 ## make object for record keeping.
@@ -92,11 +92,11 @@ sub analysis_locate {
 
 sub list_projects {
     die "$0: analysis_id_name.txt file not found."
-      if ( !-e 'analysis_id_name.txt' );
+      if ( ! -e 'analysis_id_name.txt' );
 
     say "";
-    say "| Project Name | Analysis ID |";
-    say "| -------------|------------ |";
+    say "|  Analysis ID | Analysis Path | Experiment ID | Status |";
+    say "| -------------|-------------- | ------------- | ------ |";
     system("column -t analysis_id_name.txt");
     say "";
 }
