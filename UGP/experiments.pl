@@ -127,7 +127,7 @@ sub _create_gnomex_analysis {
         # run and parse result.
         my $result = `$cmd`;
 
-        if ( ! length $result > 1 ) {
+        if ( !length $result > 1 ) {
             push @errors, "project $project could not be created";
             next;
         }
@@ -137,7 +137,7 @@ sub _create_gnomex_analysis {
         my $idAnalysis = $ref->{idAnalysis};
 
         my $new_dir = "$filepath/$folder";
-        if ( ! -d $new_dir ) {
+        if ( !-d $new_dir ) {
             make_path(
                 "$new_dir",
                 "$new_dir/Data",
@@ -157,7 +157,7 @@ sub _create_gnomex_analysis {
             );
         }
 
-        if ( ! -d $new_dir ) {
+        if ( !-d $new_dir ) {
             push @errors, "directory $new_dir could not be created";
             next;
         }
@@ -174,7 +174,7 @@ sub _create_gnomex_analysis {
         "INSERT INTO UGP (check_project_id, AnalysisDataPath, project, AnalysisID, status) VALUES (?,?,?,?,?);"
     );
     foreach my $id (@project_info) {
-        $sth->execute( $id->[0], $id->[1], $id->[2], $id->[3], 'analysis_created');
+        $sth->execute( $id->[0], $id->[1], $id->[2], $id->[3], 'processing' );
         $watch->update_log(
             "New Analysis: $id->[1] created for project: $id->[2]");
     }
