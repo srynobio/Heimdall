@@ -76,9 +76,9 @@ task 'test_data_watch',
 
 ##------------------------------------------------##
 
-desc "UGP/CHPC: Will upload the current analysis_id_name.txt file to CHPC" .
-    " running experiment will do this automatically.";
-task "project_info_upload",
+desc "UGP/CHPC: Will upload the current analysis_id_name.txt file to CHPC." .
+    " Running experiment will do this automatically.";
+task "analysis_info_upload",
   group => 'chpc',
   sub {
     upload "UGP/analysis_id_name.txt", "$chpc_path";
