@@ -6,7 +6,8 @@ use DBI;
 use XML::Simple;
 use File::Path qw(make_path);
 use feature 'say';
-use lib '../lib';
+use FindBin;
+use lib "$FindBin::Bin/../lib";
 use Heimdall;
 
 # Get base utilities
@@ -14,7 +15,7 @@ my $watch = Heimdall->new();
 my $dbh   = $watch->dbh;
 
 check_request_db();
-analysis_id_name_report();
+analysis_report();
 
 ## ------------------------------------------------------------ ##
 
@@ -65,7 +66,7 @@ sub check_request_db {
             lab          => $lab
         };
     }
-
+  
     # check if new project exist.
     # Then create analysis for new projects.
     my $new_projects = _new_project_check($experiment_hash);
@@ -136,6 +137,7 @@ sub _create_gnomex_analysis {
         my $filepath   = $ref->{filePath};
         my $idAnalysis = $ref->{idAnalysis};
 
+        ## create the empty file structure.
         my $new_dir = "$filepath/$folder";
         if ( !-d $new_dir ) {
             make_path(
@@ -182,17 +184,21 @@ sub _create_gnomex_analysis {
 
 ## ------------------------------------------------------------ ##
 
-sub analysis_id_name_report {
+sub analysis_report {
 
-    ### from Lab table get name for analysis creation.
+    ## from Lab table get name for analysis creation.
     my $analysis_statement =
-      "select AnalysisID, AnalysisDataPath, project, status from UGP;";
+      "select AnalysisID, AnalysisDataPath, project, status from UGP where AnalysisDataPath IS NOT NULL;";
     my $name_ref = $dbh->selectall_arrayref($analysis_statement);
+
+    ## update UGP table if needed first.
+    my $new_ref = _ugp_table_update($name_ref);
 
     open( my $FH, '>', 'analysis_id_name.txt' );
 
     foreach my $project ( @{$name_ref} ) {
         next if ( $project->[0] eq 'NULL' );
+        next if ( $project->[1] eq 'NULL' );
 
         my $id         = $project->[0];
         my $path       = $project->[1];
@@ -204,6 +210,28 @@ sub analysis_id_name_report {
         say $FH "$id\t$path\t$project_id\t$status";
     }
     close $FH;
+}
+
+## ------------------------------------------------------------ ##
+
+sub _ugp_table_update {
+    my $name_ref = shift;
+
+    ## from Lab table get name for analysis creation.
+    my $request_statement = "select number from Request;";
+    my $number_ref        = $dbh->selectall_arrayref($request_statement);
+
+    ## lookup of current experiment number from request table.
+    my %lookup = map { $_->[0] => 1 } @{$number_ref};
+
+    foreach my $exp ( @{$name_ref} ) {
+        my $project = $exp->[2];
+        if ( !$lookup{$project} ) {
+            my $sth = $dbh->prepare("delete from UGP where project = ?");
+            $sth->execute($project);
+        }
+    }
+    return $name_ref;
 }
 
 ## ------------------------------------------------------------ ##
