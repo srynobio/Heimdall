@@ -6,8 +6,17 @@ use feature 'say';
 use autodie;
 use Getopt::Long;
 use File::Find;
-use lib '../lib';
+use IO::File;
+use FindBin;
+use lib "$FindBin::Bin/../lib";
 use Heimdall;
+
+
+## add to cfg file
+## location of all GNomEx analysis data.
+my @data_dir = ('/scratch/ucgd/lustre/Repository/AnalysisData');
+my $lustre_path = '/scratch/ucgd/lustre';
+my $project_path = '/scratch/ucgd/lustre/Projects';
 
 my $usage = "
 
@@ -15,6 +24,7 @@ Synopsis:
     perl analysisData_linker.pl -list_projects 
     perl analysisData_linker.pl -analysis_id A76
     perl analysisData_linker.pl -analysis_id A76 -output_dir CDH_Project
+    perl analysisData_linker.pl -project_link
 
 Description:
     Will search the Lustre Repository for GNomEx AnalysisData ids and create a symlink.
@@ -27,14 +37,16 @@ Required options:
 Additional options:
     -output_dir     Path and name of the directory to name link. [default: current, -analysis_id].
     -list_projects  Will output table of all current CHPC projects and analysis ids.
+    -project_link   Will take all current UGP-GNomEx projects from -list_projects and create a symlink to each.
 
 \n";
 
-my ( $analysis_id, $list, $output );
+my ( $analysis_id, $list, $output, $link );
 GetOptions(
     "analysis_id=s" => \$analysis_id,
     "list_projects" => \$list,
     "output_dir=s"    => \$output,
+    "project_link"  => \$link,
 );
 
 ## make object for record keeping.
@@ -45,12 +57,13 @@ chomp $whoami;
 ## Default to current.
 $output //= '.';
 
-## location of all GNomEx analysis data.
-my @data_dir = ('/scratch/ucgd/lustre/Repository/AnalysisData');
-
-## if user just wants to list projects
+## Check and run alternate tasks if call then end.
 if ($list) {
     list_projects();
+    exit(0);
+}
+if ($link) {
+    project_analysis_link();
     exit(0);
 }
 
@@ -99,6 +112,22 @@ sub list_projects {
     say "| -------------|-------------- | ------------- | ------ |";
     system("column -t analysis_id_name.txt");
     say "";
+}
+
+##------------------------------------------------##
+
+sub project_analysis_link {
+    my $FH = IO::File->new('analysis_id_name.txt');
+
+    chdir $project_path;
+    foreach my $project (<$FH>) {
+        chomp $project;
+        my @parts = split /\t/, $project;
+
+        my @path_data = split /\//, $parts[1];
+        #say "ln -s $lustre_path$parts[1] $path_data[-1]";
+        `ln -s $lustre_path$parts[1] $path_data[-1]`;
+    }
 }
 
 ##------------------------------------------------##

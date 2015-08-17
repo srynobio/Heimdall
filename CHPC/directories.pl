@@ -4,7 +4,8 @@ use strict;
 use warnings;
 use feature 'say';
 use autodie;
-use lib '../lib';
+use FindBin;
+use lib "$FindBin::Bin/../lib";
 use Heimdall;
 use IO::Dir;
 
@@ -39,6 +40,7 @@ my $record;
 foreach my $store ( keys %isl_lookup ) {
     unless ( $lus_lookup{$store} ) {
         my $cmd = "cp -r $islion_repo/$store $lustre_repo/$store";
+
         #$result = `$cmd`;
         $watch->update_log(
             "directory $islion_repo/$store being copied to $lustre_repo/$store"
@@ -49,7 +51,6 @@ foreach my $store ( keys %isl_lookup ) {
 }
 
 ## quick status report.
-unless ($record) {
-    $watch->info_log("No directories to copy to lustre");
+if ( !$record ) {
+    $watch->info_log("No directories to copy to lustre AnalysisData");
 }
-
