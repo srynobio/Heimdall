@@ -26,7 +26,7 @@ task directories_create => sub {
 
 ##------------------------------------------------##
 
-task link_analysis => sub {
+task link_projects => sub {
     my $command = "perl analysisData_linker.pl -project_link";
     my $run     = run "analysis_link",
       command => $command,

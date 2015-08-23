@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-# experiments.pl
+# experiment_check.pl
 use strict;
 use warnings;
 use DBI;

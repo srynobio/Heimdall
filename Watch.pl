@@ -3,7 +3,7 @@ use Rex -feature => ['1.0'];
 # Watch.pl
 
 require Heimdall::CHPC;
-require Heimdall::GNomEx;
+require Heimdall::UGP;
 
 logging to_file => 'watch.log';
 
@@ -22,10 +22,9 @@ EOD
 
 ##------------------------------------------------##
 
-desc "GNomEx: Look for newly added experiments.";
-task "experiments", 
-sub {
-    Heimdall::GNomEx::experiments();
+desc "UGP: Look for newly added experiments.";
+task "experiment_check", sub {
+    Heimdall::UGP::experiment_check();
 };
 
 ##------------------------------------------------##
@@ -39,12 +38,12 @@ task "directories_create",
 
 ##------------------------------------------------##
 
-desc "CHPC: Will make AnalysisData links in lustre project space.";
-task "link_analysis",
-    group => 'chpc',
-    sub {
-        Heimdall::CHPC::link_analysis();
-    };
+desc "CHPC: Will make AnalysisData links in lustre /Project space.";
+task 'link_projects',
+  group => 'chpc',
+  sub {
+    Heimdall::CHPC::link_projects();
+  };
 
 ##------------------------------------------------##
 
@@ -58,7 +57,7 @@ task 'experimentData_rsync_to_lustre',
 ##------------------------------------------------##
 
 desc "CHPC: Run rsync of lustre directory to islion (AnalysisData).";
-task 'rsync_to_islion_AnalysisData.pl',
+task 'analysisData_rsync_to_islion',
   group => 'chpc',
   sub {
     Heimdall::CHPC::analysisData_rsync_to_islion();
@@ -82,17 +81,15 @@ task 'test_data_watch',
     Heimdall::CHPC::test_data_watch();
   };
 
-
 ##------------------------------------------------##
 
-desc "UGP/CHPC: Will upload the current analysis_id_name.txt file to CHPC." .
-    " Running experiment will do this automatically.";
+desc "UGP/CHPC: Will upload the current analysis_id_name.txt file to CHPC."
+  . " Running experiment will do this automatically.";
 task "analysis_info_upload",
   group => 'chpc',
   sub {
     upload "UGP/analysis_id_name.txt", "$chpc_path";
-};
+  };
 
 ## ------------------------------------------------------------ ##
-
 

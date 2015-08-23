@@ -1,4 +1,4 @@
-package Heimdall::GNomEx;
+package Heimdall::UGP;
 use Rex -base;
 use strict;
 use warnings;
@@ -6,16 +6,14 @@ use feature 'say';
 use XML::Simple;
 use autodie;
 
-use Data::Dumper;
-
 ## Paths for the directory locations on UGP.
 ## add to cfg file.
 my $ugp_path = '/home/srynearson/Heimdall/UGP';
 
 ## ------------------------------------------------------------ ##
 
-task experiments => sub {
-    my $command = 'perl experiments.pl';
+task experiment_check => sub {
+    my $command = 'perl experiment_check.pl';
     run "check",
       command => $command,
       cwd     => $ugp_path;
