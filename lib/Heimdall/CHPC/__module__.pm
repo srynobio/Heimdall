@@ -1,5 +1,6 @@
 package Heimdall::CHPC;
 use Rex -base;
+use Rex::Commands::Rsync;
 use strict;
 use warnings;
 use feature 'say';
@@ -16,8 +17,8 @@ my $islion_rsync = '/uufs/chpc.utah.edu/common/home/ucgdstor/Repository';
 
 ##------------------------------------------------##
 
-task directories => sub {
-    my $command = "perl directories.pl";
+task directories_create => sub {
+    my $command = "perl directories_create.pl";
     my $run     = run "dir_check",
       command => $command,
       cwd     => $chpc_path;
@@ -25,8 +26,17 @@ task directories => sub {
 
 ##------------------------------------------------##
 
-task rsync_to_lustre => sub {
-    my $command = "perl rsync_to_lustre.pl";
+task link_analysis => sub {
+    my $command = "perl analysisData_linker.pl -project_link";
+    my $run     = run "analysis_link",
+      command => $command,
+      cwd     => $chpc_path;
+};
+
+##------------------------------------------------##
+
+task experimentData_rsync_to_lustre => sub {
+    my $command = "perl rsync_to_lustre_ExperimentData.pl";
     my $run     = run "rsync_lustre",
       command => $command,
       cwd     => $chpc_path;
@@ -34,8 +44,8 @@ task rsync_to_lustre => sub {
 
 ##------------------------------------------------##
 
-task rsync_to_islion => sub {
-    my $command = "perl rsync_to_islion.pl";
+task analysisData_rsync_to_islion => sub {
+    my $command = "perl rsync_to_islion_AnalysisData.pl";
     my $run     = run "rsync_islion",
         command => $command,
         cwd     => $chpc_path;
@@ -58,7 +68,6 @@ task test_data_watch => sub {
       command => $command,
       cwd     => $chpc_path;
 };
-
 
 ##------------------------------------------------##
 

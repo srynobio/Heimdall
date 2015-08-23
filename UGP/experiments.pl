@@ -16,6 +16,7 @@ my $dbh   = $watch->dbh;
 
 check_request_db();
 analysis_report();
+create_individual_file();
 
 ## ------------------------------------------------------------ ##
 
@@ -66,7 +67,7 @@ sub check_request_db {
             lab          => $lab
         };
     }
-  
+
     # check if new project exist.
     # Then create analysis for new projects.
     my $new_projects = _new_project_check($experiment_hash);
@@ -138,7 +139,7 @@ sub _create_gnomex_analysis {
         my $idAnalysis = $ref->{idAnalysis};
 
         ## create the empty file structure.
-        my $new_dir = "$filepath/$folder";
+        my $new_dir = "$filepath/$folder/UGP";
         if ( !-d $new_dir ) {
             make_path(
                 "$new_dir",
@@ -188,7 +189,7 @@ sub analysis_report {
 
     ## from Lab table get name for analysis creation.
     my $analysis_statement =
-      "select AnalysisID, AnalysisDataPath, project, status from UGP where AnalysisDataPath IS NOT NULL;";
+        "select AnalysisID, AnalysisDataPath, project, status from UGP where AnalysisDataPath IS NOT NULL;";
     my $name_ref = $dbh->selectall_arrayref($analysis_statement);
 
     ## update UGP table if needed first.
@@ -214,6 +215,37 @@ sub analysis_report {
 
 ## ------------------------------------------------------------ ##
 
+sub create_individual_file {
+
+    my $id_statement = "select check_project_id, AnalysisDataPath from UGP;";
+    my $id_ref       = $dbh->selectall_arrayref($id_statement);
+
+    my %requests;
+    foreach my $id ( @{$id_ref} ) {
+        next if ( $id->[1] eq 'NULL' );
+
+        my ( $idRequest, undef ) = split /:/, $id->[0];
+        my @project = split /\//, $id->[1];
+        $requests{$idRequest} = $id->[1];
+    }
+
+    foreach my $id ( keys %requests ) {
+        my $sample_statement =
+          "select idRequest, name from Sample where idRequest = $id;";
+        my $sample_ref = $dbh->selectall_arrayref($sample_statement);
+
+        my $indiv_file = $requests{$id} . '/individuals.txt';
+        open( my $OUT, '>>', $indiv_file );
+
+        foreach my $project ( @{$sample_ref} ) {
+            say $OUT $project->[1];
+        }
+        close $OUT;
+    }
+}
+
+## ------------------------------------------------------------ ##
+
 sub _ugp_table_update {
     my $name_ref = shift;
 
@@ -232,17 +264,6 @@ sub _ugp_table_update {
         }
     }
     return $name_ref;
-}
-
-## ------------------------------------------------------------ ##
-
-sub _add_project_id {
-    my $experiment_hash = shift;
-
-    foreach my $exp ( keys %{$experiment_hash} ) {
-        my $sth = $dbh->prepare("INSERT INTO UGP (check_project_id) VALUE(?)");
-        $sth->execute($exp);
-    }
 }
 
 ## ------------------------------------------------------------ ##

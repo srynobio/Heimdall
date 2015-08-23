@@ -31,28 +31,37 @@ sub {
 ##------------------------------------------------##
 
 desc "CHPC: Look for newly created experiment directories and copy to lustre";
-task "directories",
+task "directories_create",
   group => 'chpc',
   sub {
-    Heimdall::CHPC::directories();
+    Heimdall::CHPC::directories_create();
   };
 
 ##------------------------------------------------##
 
+desc "CHPC: Will make AnalysisData links in lustre project space.";
+task "link_analysis",
+    group => 'chpc',
+    sub {
+        Heimdall::CHPC::link_analysis();
+    };
+
+##------------------------------------------------##
+
 desc "CHPC: Run rsync of islion directory to lustre (ExperimentData)";
-task 'rsync_to_islion',
+task 'experimentData_rsync_to_lustre',
   group => 'chpc',
   sub {
-    Heimdall::CHPC::rsync_to_islion();
+    Heimdall::CHPC::experimentData_rsync_to_lustre();
   };
 
 ##------------------------------------------------##
 
 desc "CHPC: Run rsync of lustre directory to islion (AnalysisData).";
-task 'rsync_to_lustre',
+task 'rsync_to_islion_AnalysisData.pl',
   group => 'chpc',
   sub {
-    Heimdall::CHPC::rsync_to_lustre();
+    Heimdall::CHPC::analysisData_rsync_to_islion();
   };
 
 ##------------------------------------------------##
