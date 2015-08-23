@@ -1,5 +1,7 @@
 #!/usr/bin/env perl
-# rsync_to_lustre.pl
+# rsync_to_lustre_ExperimentData.pl
+# This script rsyncs the ExperimentData from 
+# islion to lustre (only ugpuser access).
 use strict;
 use warnings;
 use feature 'say';

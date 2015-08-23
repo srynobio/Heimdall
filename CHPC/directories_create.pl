@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-# directories.pl
+# directories_create.pl
 use strict;
 use warnings;
 use feature 'say';
@@ -40,8 +40,8 @@ my $record;
 foreach my $store ( keys %isl_lookup ) {
     unless ( $lus_lookup{$store} ) {
         my $cmd = "cp -r $islion_repo/$store $lustre_repo/$store";
+        `$cmd`;
 
-        #$result = `$cmd`;
         $watch->update_log(
             "directory $islion_repo/$store being copied to $lustre_repo/$store"
         );

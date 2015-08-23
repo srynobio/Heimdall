@@ -57,7 +57,7 @@ chomp $whoami;
 ## Default to current.
 $output //= '.';
 
-## Check and run alternate tasks if call then end.
+## Check and run alternate tasks if called then end.
 if ($list) {
     list_projects();
     exit(0);
@@ -82,13 +82,6 @@ if ($found) {
 else {
     say "$0: [ERROR] - Analysis $analysis_id not found.";
     exit(0);
-}
-
-##------------------------------------------------##
-
-sub project_locate {
-    my $dir = $File::Find::name;
-    say $dir;
 }
 
 ##------------------------------------------------##
@@ -119,14 +112,15 @@ sub list_projects {
 sub project_analysis_link {
     my $FH = IO::File->new('analysis_id_name.txt');
 
+    $watch->info_log("$0: creating softlink to analysisData directories");
+
     chdir $project_path;
     foreach my $project (<$FH>) {
         chomp $project;
         my @parts = split /\t/, $project;
 
         my @path_data = split /\//, $parts[1];
-        #say "ln -s $lustre_path$parts[1] $path_data[-1]";
-        `ln -s $lustre_path$parts[1] $path_data[-1]`;
+        `ln -s $lustre_path$parts[1] .`;
     }
 }
 
