@@ -97,13 +97,15 @@ sub analysis_locate {
 ##------------------------------------------------##
 
 sub list_projects {
-    die "$0: analysis_id_name.txt file not found."
-      if ( ! -e 'analysis_id_name.txt' );
+
+    ## add to cfg file.
+    my $id_name_file = '/uufs/chpc.utah.edu/common/home/u0413537/Heimdall/CHPC/analysis_id_name.txt';
+    die "$0: analysis_id_name.txt file not found." if ( ! -e $id_name_file );
 
     say "";
-    say "|  Analysis ID | Analysis Path | Experiment ID | Status |";
+    say "|  Analysis ID | Project Path | Experiment ID | Status |";
     say "| -------------|-------------- | ------------- | ------ |";
-    system("column -t analysis_id_name.txt");
+    system("column -t $id_name_file");
     say "";
 }
 
