@@ -4,7 +4,8 @@ use strict;
 use warnings;
 use feature 'say';
 use autodie;
-use lib '../lib';
+use FindBin;
+use lib "$FindBin::Bin/../lib";
 use Heimdall;
 use IO::Dir;
 
