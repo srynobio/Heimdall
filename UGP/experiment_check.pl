@@ -14,6 +14,9 @@ use Heimdall;
 my $watch = Heimdall->new();
 my $dbh   = $watch->dbh;
 
+## add to cfg file
+my $lustre_space = '/scratch/ucgd/lustre';
+
 check_request_db();
 analysis_report();
 create_individual_file();
@@ -147,6 +150,7 @@ sub _create_gnomex_analysis {
                 "$new_dir/Data/PolishedBams",
                 "$new_dir/Data/Primary_Data",
                 "$new_dir/QC",
+                "$new_dir/Intermediate_Files",
                 "$new_dir/Analysis",
                 "$new_dir/Reports/flagstat",
                 "$new_dir/Reports/stats",
@@ -208,7 +212,7 @@ sub analysis_report {
 
         $id =~ s/^/A/g;
 
-        say $FH "$id\t$path\t$project_id\t$status";
+        say $FH "$id\t$lustre_space$path\t$project_id\t$status";
     }
     close $FH;
 }
@@ -235,7 +239,7 @@ sub create_individual_file {
         my $sample_ref = $dbh->selectall_arrayref($sample_statement);
 
         my $indiv_file = $requests{$id} . '/individuals.txt';
-        open( my $OUT, '>>', $indiv_file );
+        open( my $OUT, '>', $indiv_file );
 
         foreach my $project ( @{$sample_ref} ) {
             say $OUT $project->[1];

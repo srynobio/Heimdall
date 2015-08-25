@@ -6,8 +6,6 @@ use warnings;
 use feature 'say';
 use autodie;
 
-use Data::Dumper;
-
 ## Paths for the Heimdall directory locations on CHPC.
 ## add to cfg file.
 my $chpc_path    = '/uufs/chpc.utah.edu/common/home/u0413537/Heimdall/CHPC';
