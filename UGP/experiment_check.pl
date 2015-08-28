@@ -199,7 +199,7 @@ sub analysis_report {
     ## update UGP table if needed first.
     my $new_ref = _ugp_table_update($name_ref);
 
-    open( my $FH, '>', 'analysis_id_name.txt' );
+    open( my $FH, '>', 'processing_report.txt');
 
     foreach my $project ( @{$name_ref} ) {
         next if ( $project->[0] eq 'NULL' );
