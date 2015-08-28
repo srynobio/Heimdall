@@ -8,19 +8,20 @@ use FindBin;
 use lib "$FindBin::Bin/../lib";
 use Heimdall;
 use IO::File;
-use IO::Dir;
 use File::Copy qw(move);
 
 ## set up paths.
 ## add to cfg file.
-my $process = '/scratch/ucgd/lustre/nantomics-transfer/Process_Data';
+my $process   = '/scratch/ucgd/lustre/nantomics-transfer/Process_Data';
+my $chpc_path = '/uufs/chpc.utah.edu/common/home/u0413537/Heimdall/CHPC';
 
 ## Set up utils object.
 my $watch = Heimdall->new();
 
-## Open project file.
-my $TXT  = IO::File->new('analysis_id_name.txt');
+## Create Filehandles.
+my $TXT  = IO::File->new("$chpc_path/experiment_report.txt");
 my $DATA = IO::Dir->new($process);
+my $OUT  = IO::File->new("$chpc_path/processed_report.txt");
 
 ## create lookup of current /Process_Data collection.
 my %data_lookup;
@@ -75,7 +76,7 @@ sub individuals_find {
     foreach my $indv (<$ID_FILE>) {
         chomp $indv;
 
-        ## find files that match individuals.
+        ## find file that match individuals.
         my @found = grep { /$indv/ } keys %data_lookup;
 
         if (@found) {

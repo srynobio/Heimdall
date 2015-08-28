@@ -20,7 +20,7 @@ my $xfer    = '/scratch/ucgd/lustre/nantomics-transfer/xfer';
 ## quick check.
 unless ( -e $path and -e $process and -e $xfer ) {
     $watch->error_log(
-        "$0: One or more directories not found [path, process, xfer]" );
+        "$0: One or more directories not found in $path [process, xfer]" );
     exit(0);
 }
 
@@ -51,7 +51,7 @@ foreach my $bam ( $XFER->read ) {
 
 ## second checks
 if ( ! @bams ) {
-    $watch->info_log("$0: No complete BAM files found in $xfer");
+    $watch->info_log("$0: No complete non-transfering BAM files found in $xfer");
     exit(0);
 }
 

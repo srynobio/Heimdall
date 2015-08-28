@@ -11,12 +11,12 @@ use FindBin;
 use lib "$FindBin::Bin/../lib";
 use Heimdall;
 
-
 ## add to cfg file
 ## location of all GNomEx analysis data.
-my @data_dir = ('/scratch/ucgd/lustre/Repository/AnalysisData');
-my $lustre_path = '/scratch/ucgd/lustre';
+my @data_dir     = ('/scratch/ucgd/lustre/Repository/AnalysisData');
+my $lustre_path  = '/scratch/ucgd/lustre';
 my $project_path = '/scratch/ucgd/lustre/Projects';
+my $chpc_path    = '/uufs/chpc.utah.edu/common/home/u0413537/Heimdall/CHPC';
 
 my $usage = "
 
@@ -45,7 +45,7 @@ my ( $analysis_id, $list, $output, $link );
 GetOptions(
     "analysis_id=s" => \$analysis_id,
     "list_projects" => \$list,
-    "output_dir=s"    => \$output,
+    "output_dir=s"  => \$output,
     "project_link"  => \$link,
 );
 
@@ -99,8 +99,8 @@ sub analysis_locate {
 sub list_projects {
 
     ## add to cfg file.
-    my $id_name_file = '/uufs/chpc.utah.edu/common/home/u0413537/Heimdall/CHPC/analysis_id_name.txt';
-    die "$0: analysis_id_name.txt file not found." if ( ! -e $id_name_file );
+    my $id_name_file = "$chpc_path/processing_report.txt";
+    die "$0: processing_report.txt file not found." if ( !-e $id_name_file );
 
     say "";
     say "|  Analysis ID | Project Path | Experiment ID | Status |";
@@ -112,7 +112,7 @@ sub list_projects {
 ##------------------------------------------------##
 
 sub project_analysis_link {
-    my $FH = IO::File->new('analysis_id_name.txt');
+    my $FH = IO::File->new("$chpc_path/processing_report.txt");
 
     $watch->info_log("$0: creating softlink to analysisData directories");
 
