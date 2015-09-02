@@ -5,10 +5,14 @@ use warnings;
 use feature 'say';
 use XML::Simple;
 use autodie;
+use Heimdall;
 
-## Paths for the directory locations on UGP.
-## add to cfg file.
-my $ugp_path = '/home/srynearson/Heimdall/UGP';
+my $watch = Heimdall->new();
+
+## Get path from config file.
+my $heimdall_ugp = $watch->config->{UCGD}->{heimdall_ugp};
+
+#my $heimdall_ugp = '/home/srynearson/Heimdall/UGP';
 
 ## ------------------------------------------------------------ ##
 
@@ -16,7 +20,7 @@ task experiment_check => sub {
     my $command = 'perl experiment_check.pl';
     run "check",
       command => $command,
-      cwd     => $ugp_path;
+      cwd     => $heimdall_ugp;
 
     do_task "analysis_info_upload",;
 };

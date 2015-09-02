@@ -1,13 +1,15 @@
 use Rex -feature => ['1.0'];
-
 # Watch.pl
-
+use FindBin;
+use lib "$FindBin::Bin/../lib";
+use Heimdall;
 require Heimdall::CHPC;
 require Heimdall::UGP;
 
-logging to_file => 'watch.log';
+my $watch         = Heimdall->new();
+my $heimdall_chpc = $watch->config->{UCGD}->{heimdall_chpc};
 
-my $chpc_path = '/uufs/chpc.utah.edu/common/home/u0413537/Heimdall/CHPC';
+logging to_file => 'watch.log';
 
 ##------------------------------------------------##
 
@@ -88,7 +90,7 @@ desc "UGP/CHPC: Will upload the current analysis_id_name.txt file to CHPC."
 task "analysis_info_upload",
   group => 'chpc',
   sub {
-    upload "UGP/analysis_id_name.txt", "$chpc_path";
+    upload "UGP/analysis_id_name.txt", "$heimdall_chpc";
   };
 
 ## ------------------------------------------------------------ ##

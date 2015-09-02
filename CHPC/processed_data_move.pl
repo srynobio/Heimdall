@@ -10,18 +10,20 @@ use Heimdall;
 use IO::File;
 use File::Copy qw(move);
 
-## set up paths.
-## add to cfg file.
-my $process   = '/scratch/ucgd/lustre/nantomics-transfer/Process_Data';
-my $chpc_path = '/uufs/chpc.utah.edu/common/home/u0413537/Heimdall/CHPC';
-
 ## Set up utils object.
 my $watch = Heimdall->new();
 
+## Get paths from config
+my $process       = $watch->config->{nantomics_transfer}->{process};
+my $heimdall_chpc = $watch->config->{UCGD}->{heimdall_chpc};
+
+#my $process   = '/scratch/ucgd/lustre/nantomics-transfer/Process_Data';
+#my $heimdall_chpc = '/uufs/chpc.utah.edu/common/home/u0413537/Heimdall/CHPC';
+
 ## Create Filehandles.
-my $TXT  = IO::File->new("$chpc_path/experiment_report.txt");
+my $TXT  = IO::File->new("$heimdall_chpc/experiment_report.txt");
 my $DATA = IO::Dir->new($process);
-my $OUT  = IO::File->new("$chpc_path/processed_report.txt");
+my $OUT  = IO::File->new("$heimdall_chpc/processed_report.txt");
 
 ## create lookup of current /Process_Data collection.
 my %data_lookup;

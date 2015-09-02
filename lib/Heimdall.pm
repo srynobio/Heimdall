@@ -5,24 +5,47 @@ use feature 'say';
 use autodie;
 use Moo;
 use DBI;
+use Config::Std;
 
 ##------------------------------------------------------##
-##--- ATTS ---------------------------------------------## 
+##--- ATTS ---------------------------------------------##
 ##------------------------------------------------------##
+
+has VERSION => (
+    is => 'ro',
+    default => sub { 'v0.1' },
+);
 
 has time => (
-    is => 'ro',
+    is      => 'ro',
     default => sub {
         my $time = localtime;
         return $time;
     },
 );
 
+has config => (
+    is => 'rw',
+    builder => '_build_config',
+);
+
 ##------------------------------------------------------##
 ##--- METHODS ------------------------------------------##
 ##------------------------------------------------------##
 
-sub dbh { 
+sub _build_config {
+    my $self = shift;
+
+    my $config = '../heimdall.cfg';
+    $self->error_log("Required heimdall.cfg file not found") unless $config;
+
+    read_config $config => my %config;
+    $self->config( \%config );
+}
+
+##------------------------------------------------------##
+
+sub dbh {
     my $self = shift;
 
     my $dbh = DBI->connect( 
@@ -37,9 +60,9 @@ sub dbh {
 ##------------------------------------------------------##
 
 sub log_write {
-    my ($self, $message) = @_;
+    my ( $self, $message ) = @_;
 
-    open(my $FH, '>>', '../watch.log');
+    open( my $FH, '>>', '../watch.log' );
     say $FH $message;
     close $FH;
 }
@@ -47,23 +70,23 @@ sub log_write {
 ##------------------------------------------------------##
 
 sub info_log {
-    my ($self, $message) = @_;
-    $self->log_write("[" . $self->time . "]" . " INFO - $message");
+    my ( $self, $message ) = @_;
+    $self->log_write( "[" . $self->time . "]" . " INFO - $message" );
 }
 
 ##------------------------------------------------------##
 
 sub error_log {
-    my ($self, $message) = @_;
-    $self->log_write("[" . $self->time . "]" . " ERROR - $message");
+    my ( $self, $message ) = @_;
+    $self->log_write( "[" . $self->time . "]" . " ERROR - $message" );
 }
 
 ##------------------------------------------------------##
 
 sub update_log {
-    my ($self, $message) = @_;
-    $self->log_write("[" . $self->time . "]" . " UPDATE - $message");
-} 
+    my ( $self, $message ) = @_;
+    $self->log_write( "[" . $self->time . "]" . " UPDATE - $message" );
+}
 
 ##------------------------------------------------------##
 

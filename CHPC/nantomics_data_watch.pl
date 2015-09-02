@@ -11,11 +11,13 @@ use IO::Dir;
 
 my $watch = Heimdall->new();
 
-## set up paths.
-## add to cfg file.
-my $path    = '/scratch/ucgd/lustre/nantomics-transfer';
-my $process = '/scratch/ucgd/lustre/nantomics-transfer/Process_Data';
-my $xfer    = '/scratch/ucgd/lustre/nantomics-transfer/xfer';
+## Get paths from config file.
+my $path    = $watch->config->{nantomics_transfer}->{path};
+my $process = $watch->config->{nantomics_transfer}->{process};
+my $xfer    = $watch->config->{nantomics_transfer}->{xfer};
+#my $path    = '/scratch/ucgd/lustre/nantomics-transfer';
+#my $process = '/scratch/ucgd/lustre/nantomics-transfer/Process_Data';
+#my $xfer    = '/scratch/ucgd/lustre/nantomics-transfer/xfer';
 
 ## quick check.
 unless ( -e $path and -e $process and -e $xfer ) {

@@ -12,10 +12,11 @@ use IO::Dir;
 # setup base utils
 my $watch = Heimdall->new();
 
-## Set 2015 globals for easy calling.
-## add to config later.
-my $islion_repo = '/uufs/chpc.utah.edu/common/home/ucgdstor/Repository/AnalysisData/2015';
-my $lustre_repo = '/scratch/ucgd/lustre/Repository/AnalysisData/2015';
+## Get paths from config file.
+my $islion_repo = $watch->config->{repository}->{islion_repo};
+my $lustre_repo = $watch->config->{repository}->{lustre_repo};
+#my $islion_repo = '/uufs/chpc.utah.edu/common/home/ucgdstor/Repository/AnalysisData/2015';
+#my $lustre_repo = '/scratch/ucgd/lustre/Repository/AnalysisData/2015';
 
 ## Make object and create lookups.
 my $iso_dir = IO::Dir->new($islion_repo);

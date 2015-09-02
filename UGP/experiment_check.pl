@@ -14,8 +14,9 @@ use Heimdall;
 my $watch = Heimdall->new();
 my $dbh   = $watch->dbh;
 
-## add to cfg file
-my $lustre_space = '/scratch/ucgd/lustre';
+## get path from config file.
+my $lustre_path = $watch->config->{UCGD}->{lustre_path};
+#my $lustre_path = '/scratch/ucgd/lustre';
 
 check_request_db();
 analysis_report();
@@ -212,7 +213,7 @@ sub analysis_report {
 
         $id =~ s/^/A/g;
 
-        say $FH "$id\t$lustre_space$path\t$project_id\t$status";
+        say $FH "$id\t$lustre_path$path\t$project_id\t$status";
     }
     close $FH;
 }
