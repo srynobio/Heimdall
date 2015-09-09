@@ -12,10 +12,14 @@ use Heimdall;
 
 # Get base utilities
 my $watch = Heimdall->new(
-    config_file => './heimdall.cfg',
-    log_file    => './watch.log'
+    config_file => '../heimdall.cfg',
+    log_file    => '../watch.log'
 );
 my $dbh = $watch->dbh;
+
+
+use Data::Dumper;
+say Dumper 'shawn', $watch;
 
 ## get paths from config file.
 my $lustre_path = $watch->config->{UCGD}->{lustre_path};

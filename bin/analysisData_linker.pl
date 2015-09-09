@@ -44,8 +44,8 @@ GetOptions(
 
 ## make object for record keeping.
 my $watch = Heimdall->new(
-    config_file => './heimdall.cfg',
-    log_file    => './watch.log'
+    config_file => '../heimdall.cfg',
+    log_file    => '../watch.log'
 );
 my $whoami = `whoami`;
 chomp $whoami;

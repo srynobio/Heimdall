@@ -11,8 +11,8 @@ use IO::Dir;
 
 # setup base utils
 my $watch = Heimdall->new(
-    config_file => './heimdall.cfg',
-    log_file    => './watch.log'
+    config_file => '../heimdall.cfg',
+    log_file    => '../watch.log'
 );
 
 ## Get paths from config file.

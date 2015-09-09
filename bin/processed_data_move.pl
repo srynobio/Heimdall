@@ -12,8 +12,8 @@ use File::Copy qw(move);
 
 ## Set up utils object.
 my $watch = Heimdall->new(
-    config_file => './heimdall.cfg',
-    log_file    => './watch.log'
+    config_file => '../heimdall.cfg',
+    log_file    => '../watch.log'
 );
 
 ## Get paths from config

@@ -6,13 +6,13 @@ use Heimdall;
 
 ## Set up the utils object.
 my $watch = Heimdall->new(
-    config_file => './heimdall.cfg',
-    log_file    => './watch.log'
+    config_file => 'heimdall.cfg',
+    log_file    => 'watch.log'
 );
 logging to_file => 'watch.log';
 
-my $heimdall_ugp  = $watch->config->{UCGD}->{heimdall_ugp};
-my $heimdall_chpc = $watch->config->{UCGD}->{heimdall_chpc};
+my $heimdall_ugp  = $watch->config->{UCGD}->{heimdall_ugp_bin};
+my $heimdall_chpc = $watch->config->{UCGD}->{heimdall_chpc_bin};
 my $lustre_rsync  = $watch->config->{rsync}->{lustre_rsync};
 my $islion_rsync  = $watch->config->{rsync}->{islion_rsync};
 
@@ -21,9 +21,7 @@ my $islion_rsync  = $watch->config->{rsync}->{islion_rsync};
 ##------------------------------------------------##
 
 desc "UGP: Checks GNomEx for new experiments.";
-task 'experiment_check',
-  group => 'ugp',
-  sub {
+task experiment_check => sub {
     my $command = 'perl experiment_check.pl';
     run "check",
       command => $command,
