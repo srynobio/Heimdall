@@ -51,10 +51,10 @@ my $whoami = `whoami`;
 chomp $whoami;
 
 # Get paths from config file.
-my @data_dir      = ( $watch->config->{UCGD}->{lustre_data} );
-my $lustre_path   = $watch->config->{UCGD}->{lustre_path};
-my $project_path  = $watch->config->{UCGD}->{project_path};
-my $heimdall_chpc = $watch->config->{UCGD}->{heimdall_chpc};
+my @data_dir          = ( $watch->config->{UCGD}->{lustre_data} );
+my $lustre_path       = $watch->config->{UCGD}->{lustre_path};
+my $project_path      = $watch->config->{UCGD}->{project_path};
+my $heimdall_chpc_bin = $watch->config->{UCGD}->{heimdall_chpc_bin_bin};
 
 ## Default to current.
 $output //= '.';
@@ -101,7 +101,7 @@ sub analysis_locate {
 sub list_projects {
 
     ## add to cfg file.
-    my $id_name_file = "$heimdall_chpc/processing_report.txt";
+    my $id_name_file = "$heimdall_chpc_bin/processing_report.txt";
     die "$0: processing_report.txt file not found." if ( !-e $id_name_file );
 
     say "";
@@ -114,7 +114,7 @@ sub list_projects {
 ##------------------------------------------------##
 
 sub project_analysis_link {
-    my $FH = IO::File->new("$heimdall_chpc/processing_report.txt");
+    my $FH = IO::File->new("$heimdall_chpc_bin/processing_report.txt");
 
     $watch->info_log("$0: creating softlink to analysisData directories");
 
