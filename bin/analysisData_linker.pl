@@ -54,7 +54,7 @@ chomp $whoami;
 my @data_dir          = ( $watch->config->{UCGD}->{lustre_data} );
 my $lustre_path       = $watch->config->{UCGD}->{lustre_path};
 my $project_path      = $watch->config->{UCGD}->{project_path};
-my $heimdall_chpc_bin = $watch->config->{UCGD}->{heimdall_chpc_bin_bin};
+my $heimdall_chpc_bin = $watch->config->{UCGD}->{heimdall_chpc_bin};
 
 ## Default to current.
 $output //= '.';

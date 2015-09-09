@@ -18,7 +18,7 @@ my $watch = Heimdall->new(
 
 ## Get paths from config
 my $process           = $watch->config->{nantomics_transfer}->{process};
-my $heimdall_chpc_bin = $watch->config->{UCGD}->{heimdall_chpc_bin_bin};
+my $heimdall_chpc_bin = $watch->config->{UCGD}->{heimdall_chpc_bin};
 
 ## Create Filehandles.
 my $TXT  = IO::File->new("$heimdall_chpc_bin/experiment_report.txt");
