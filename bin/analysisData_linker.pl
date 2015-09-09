@@ -11,7 +11,7 @@ use FindBin;
 use lib "$FindBin::Bin/../lib";
 use Heimdall;
 
-my $usage = "
+my $usage = << "EOU";
 
 Synopsis:
     perl analysisData_linker.pl -list_projects 
@@ -32,7 +32,7 @@ Additional options:
     -list_projects  Will output table of all current CHPC projects and analysis ids.
     -project_link   Will take all current UGP-GNomEx projects from -list_projects and create a symlink to each.
 
-\n";
+EOU
 
 my ( $analysis_id, $list, $output, $link );
 GetOptions(
@@ -43,20 +43,18 @@ GetOptions(
 );
 
 ## make object for record keeping.
-my $watch  = Heimdall->new();
+my $watch = Heimdall->new(
+    config_file => './heimdall.cfg',
+    log_file    => './watch.log'
+);
 my $whoami = `whoami`;
 chomp $whoami;
 
 # Get paths from config file.
-my @data_dir      = ($watch->config->{UCGD}->{lustre_data});
+my @data_dir      = ( $watch->config->{UCGD}->{lustre_data} );
 my $lustre_path   = $watch->config->{UCGD}->{lustre_path};
 my $project_path  = $watch->config->{UCGD}->{project_path};
 my $heimdall_chpc = $watch->config->{UCGD}->{heimdall_chpc};
-
-#my @data_dir     = ('/scratch/ucgd/lustre/Repository/AnalysisData');
-#my $lustre_path  = '/scratch/ucgd/lustre';
-#my $project_path = '/scratch/ucgd/lustre/Projects';
-#my $heimdall_chpc    = '/uufs/chpc.utah.edu/common/home/u0413537/Heimdall/CHPC';
 
 ## Default to current.
 $output //= '.';

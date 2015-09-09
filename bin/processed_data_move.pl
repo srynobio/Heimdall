@@ -11,7 +11,10 @@ use IO::File;
 use File::Copy qw(move);
 
 ## Set up utils object.
-my $watch = Heimdall->new();
+my $watch = Heimdall->new(
+    config_file => './heimdall.cfg',
+    log_file    => './watch.log'
+);
 
 ## Get paths from config
 my $process       = $watch->config->{nantomics_transfer}->{process};

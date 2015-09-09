@@ -1,97 +1,114 @@
 use Rex -feature => ['1.0'];
-# Watch.pl
+use feature 'say';
 use FindBin;
 use lib "$FindBin::Bin/../lib";
 use Heimdall;
-require Heimdall::CHPC;
-require Heimdall::UGP;
 
-my $watch         = Heimdall->new();
-my $heimdall_chpc = $watch->config->{UCGD}->{heimdall_chpc};
-
+## Set up the utils object.
+my $watch = Heimdall->new(
+    config_file => './heimdall.cfg',
+    log_file    => './watch.log'
+);
 logging to_file => 'watch.log';
 
+my $heimdall_ugp  = $watch->config->{UCGD}->{heimdall_ugp};
+my $heimdall_chpc = $watch->config->{UCGD}->{heimdall_chpc};
+my $lustre_rsync  = $watch->config->{rsync}->{lustre_rsync};
+my $islion_rsync  = $watch->config->{rsync}->{islion_rsync};
+
+##------------------------------------------------##
+## UGP Server Tasks.
 ##------------------------------------------------##
 
-desc "Documentation on the use of Heimdall";
-task docs => sub {
-    print <<"EOD"
+desc "UGP: Checks GNomEx for new experiments.";
+task 'experiment_check',
+  group => 'ugp',
+  sub {
+    my $command = 'perl experiment_check.pl';
+    run "check",
+      command => $command,
+      cwd     => $heimdall_ugp;
 
-This is a place holder. :)
-
-EOD
+    ## this task runs on chpc.
+    do_task 'upload_processing_report';
 };
 
 ##------------------------------------------------##
-
-desc "UGP: Look for newly added experiments.";
-task "experiment_check", sub {
-    Heimdall::UGP::experiment_check();
-};
-
+## CHPC Server Tasks.
 ##------------------------------------------------##
 
-desc "CHPC: Look for newly created experiment directories and copy to lustre";
-task "directories_create",
+desc "UGP/CHPC: Will upload the processing_report.txt file to CHPC.";
+task 'upload_processing_report',
   group => 'chpc',
   sub {
-    Heimdall::CHPC::directories_create();
-  };
+    upload "bin/processing_report.txt", "$heimdall_chpc";
+};
 
 ##------------------------------------------------##
 
-desc "CHPC: Will make AnalysisData links in lustre /Project space.";
+task 'directories_create',
+  group => 'chpc',
+  sub {
+    my $command = "perl directories_create.pl";
+    my $run     = run "dir_check",
+      command => $command,
+      cwd     => $heimdall_chpc;
+};
+
+##------------------------------------------------##
+
 task 'link_projects',
   group => 'chpc',
   sub {
-    Heimdall::CHPC::link_projects();
-  };
+    my $command = "perl analysisData_linker.pl -project_link";
+    my $run     = run "analysis_link",
+      command => $command,
+      cwd     => $heimdall_chpc;
+};
 
 ##------------------------------------------------##
 
-desc "CHPC: Run rsync of islion directory to lustre (ExperimentData)";
 task 'experimentData_rsync_to_lustre',
   group => 'chpc',
   sub {
-    Heimdall::CHPC::experimentData_rsync_to_lustre();
-  };
+    my $command = "perl rsync_to_lustre_ExperimentData.pl";
+    my $run     = run "rsync_lustre",
+      command => $command,
+      cwd     => $heimdall_chpc;
+};
 
 ##------------------------------------------------##
 
-desc "CHPC: Run rsync of lustre directory to islion (AnalysisData).";
 task 'analysisData_rsync_to_islion',
   group => 'chpc',
   sub {
-    Heimdall::CHPC::analysisData_rsync_to_islion();
-  };
+    my $command = "perl rsync_to_islion_AnalysisData.pl";
+    my $run     = run "rsync_islion",
+      command => $command,
+      cwd     => $heimdall_chpc;
+};
 
 ##------------------------------------------------##
 
-desc "CHPC: Check the status of the nantomics xfer directory.";
 task 'nantomics_data_watch',
   group => 'chpc',
   sub {
-    Heimdall::CHPC::nantomics_data_watch();
-  };
+    my $command = 'perl nantomics_data_watch.pl';
+    my $run     = run 'data_watch',
+      command => $command,
+      cwd     => $heimdall_chpc;
+};
 
 ##------------------------------------------------##
 
-desc "CHPC: Check the status of the test xfer directory.";
 task 'test_data_watch',
   group => 'chpc',
   sub {
-    Heimdall::CHPC::test_data_watch();
-  };
+    my $command = 'perl test_data_watch.pl';
+    my $run     = run 'data_watch',
+      command => $command,
+      cwd     => $heimdall_chpc;
+};
 
 ##------------------------------------------------##
-
-desc "UGP/CHPC: Will upload the current analysis_id_name.txt file to CHPC."
-  . " Running experiment will do this automatically.";
-task "analysis_info_upload",
-  group => 'chpc',
-  sub {
-    upload "UGP/analysis_id_name.txt", "$heimdall_chpc";
-  };
-
-## ------------------------------------------------------------ ##
 

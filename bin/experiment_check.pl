@@ -11,12 +11,16 @@ use lib "$FindBin::Bin/../lib";
 use Heimdall;
 
 # Get base utilities
-my $watch = Heimdall->new();
-my $dbh   = $watch->dbh;
+my $watch = Heimdall->new(
+    config_file => './heimdall.cfg',
+    log_file    => './watch.log'
+);
+my $dbh = $watch->dbh;
 
-## get path from config file.
+## get paths from config file.
 my $lustre_path = $watch->config->{UCGD}->{lustre_path};
-#my $lustre_path = '/scratch/ucgd/lustre';
+my $properties  = $watch->config->{gnomex}->{properties};
+my $gnomex_jar  = $watch->config->{gnomex}->{gnomex_jar};
 
 check_request_db();
 analysis_report();
@@ -55,7 +59,7 @@ sub check_request_db {
           "select name from Project where idProject = "
           . $request->{idProject} . ";";
         my $proj_ref = $dbh->selectall_arrayref($project_statement);
-
+    
         my $project_name = $proj_ref->[0][0];
         $project_name =~ s/[^A-Za-z0-9]/ /g;
         $project_name =~ s/\s+/_/g;
@@ -98,7 +102,7 @@ sub _new_project_check {
         }
     }
 
-    # this unless will be the "no new data" exit point.
+    ## The "no new data" exit point.
     unless ( keys %{$experiment_hash} ) {
         $watch->info_log("No new experiments");
     }
@@ -123,11 +127,12 @@ sub _create_gnomex_analysis {
         my $folder       = $new_projects->{$new}->{folder};
 
         my $cmd = sprintf(
-            "java -classpath gnomex_client.jar hci.gnomex.httpclient.CreateAnalysisMain "
-              . "-properties properties -server ugp.chpc.utah.edu "
+            "java -classpath %s hci.gnomex.httpclient.CreateAnalysisMain "
+              . "-properties %s -server ugp.chpc.utah.edu "
               . "-name \"%s\" -lab \"%s\" -folderName \"%s\" -organism \"Human\" "
               . "-genomeBuild human_g1k_v37 -analysisType \"UGP Analysis\" -analysisProtocal \"UGP\" "
               . "-experiment %s\n",
+            $properties, $gnomex_jar,
             $project_name, $lab, $folder, $project );
 
         # run and parse result.

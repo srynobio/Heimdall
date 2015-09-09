@@ -9,20 +9,20 @@ use lib "$FindBin::Bin/../lib";
 use Heimdall;
 use IO::Dir;
 
-my $watch = Heimdall->new();
+my $watch = Heimdall->new(
+    config_file => './heimdall.cfg',
+    log_file    => './watch.log'
+);
 
 ## Get paths from config file.
 my $path    = $watch->config->{nantomics_transfer}->{path};
 my $process = $watch->config->{nantomics_transfer}->{process};
 my $xfer    = $watch->config->{nantomics_transfer}->{xfer};
-#my $path    = '/scratch/ucgd/lustre/nantomics-transfer';
-#my $process = '/scratch/ucgd/lustre/nantomics-transfer/Process_Data';
-#my $xfer    = '/scratch/ucgd/lustre/nantomics-transfer/xfer';
 
 ## quick check.
 unless ( -e $path and -e $process and -e $xfer ) {
     $watch->error_log(
-        "$0: One or more directories not found in $path [process, xfer]" );
+        "$0: One or more directories not found in $path [process, xfer]");
     exit(0);
 }
 
@@ -52,8 +52,9 @@ foreach my $bam ( $XFER->read ) {
 }
 
 ## second checks
-if ( ! @bams ) {
-    $watch->info_log("$0: No complete non-transfering BAM files found in $xfer");
+if ( !@bams ) {
+    $watch->info_log(
+        "$0: No complete non-transfering BAM files found in $xfer");
     exit(0);
 }
 
