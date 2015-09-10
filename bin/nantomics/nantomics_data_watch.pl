@@ -1,29 +1,28 @@
 #!/usr/bin/env perl
-# test_data_watch.pl
+# nantomics_data_watch.pl
 use strict;
 use warnings;
 use feature 'say';
 use autodie;
 use FindBin;
-use lib "$FindBin::Bin/../lib";
+use lib "$FindBin::Bin/../../lib";
 use Heimdall;
 use IO::Dir;
 
 my $watch = Heimdall->new(
-    config_file => '../heimdall.cfg',
-    log_file    => '../watch.log'
+    config_file => '../../heimdall.cfg',
+    log_file    => '../../watch.log'
 );
 
 ## Get paths from config file.
-my $path    = $watch->config->{test_transfer}->{path};
-my $process = $watch->config->{test_transfer}->{process};
-my $xfer    = $watch->config->{test_transfer}->{xfer};
+my $path    = $watch->config->{nantomics_transfer}->{path};
+my $process = $watch->config->{nantomics_transfer}->{process};
+my $xfer    = $watch->config->{nantomics_transfer}->{xfer};
 
 ## quick check.
 unless ( -e $path and -e $process and -e $xfer ) {
     $watch->error_log(
-        "$0: One or more directories not found [path, process, xfer]"
-    );
+        "$0: One or more directories not found in $path [process, xfer]");
     exit(0);
 }
 
@@ -36,9 +35,9 @@ my %tranf_lookup;
 if (@xfers) {
     foreach my $xfer (@xfers) {
         chomp $xfer;
-        next unless ($xfer =~ /bam$/);
-        my @lsof = split /\s/, $xfer;
-        my @parts = split/\//, $lsof[-1];
+        next unless ( $xfer =~ /bam$/ );
+        my @lsof  = split /\s/, $xfer;
+        my @parts = split /\//, $lsof[-1];
         $tranf_lookup{ $parts[-1] }++;
     }
 }
@@ -53,8 +52,9 @@ foreach my $bam ( $XFER->read ) {
 }
 
 ## second checks
-unless (@bams) {
-    $watch->info_log("$0: No complete BAM files found in $xfer");
+if ( !@bams ) {
+    $watch->info_log(
+        "$0: No complete non-transfering BAM files found in $xfer");
     exit(0);
 }
 
@@ -77,8 +77,8 @@ elsif (@bams) {
 
 ## move bam files.
 chdir $xfer if (@moves);
-map { 
+foreach my $mv (@moves) {
+    chomp $mv;
     `mv $_ $process`;
     $watch->info_log("$0: $_ file moved into $process directory");
-} @moves;
-
+}

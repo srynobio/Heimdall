@@ -1,23 +1,23 @@
 #!/usr/bin/env perl
-# processed_data_move.pl
+# test_data_move.pl
 use strict;
 use warnings;
 use feature 'say';
 use autodie;
 use FindBin;
-use lib "$FindBin::Bin/../lib";
+use lib "$FindBin::Bin/../../lib";
 use Heimdall;
 use IO::File;
 use File::Copy qw(move);
 
 ## Set up utils object.
 my $watch = Heimdall->new(
-    config_file => '../heimdall.cfg',
-    log_file    => '../watch.log'
+    config_file => '../../heimdall.cfg',
+    log_file    => '../../watch.log'
 );
 
 ## Get paths from config
-my $process           = $watch->config->{nantomics_transfer}->{process};
+my $process           = $watch->config->{test_transfer}->{process};
 my $heimdall_chpc_bin = $watch->config->{UCGD}->{heimdall_chpc_bin};
 
 ## Create Filehandles.
