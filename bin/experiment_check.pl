@@ -17,14 +17,11 @@ my $watch = Heimdall->new(
 );
 my $dbh = $watch->dbh;
 
-
-use Data::Dumper;
-say Dumper 'shawn', $watch;
-
 ## get paths from config file.
-my $lustre_path = $watch->config->{UCGD}->{lustre_path};
-my $properties  = $watch->config->{gnomex}->{properties};
-my $gnomex_jar  = $watch->config->{gnomex}->{gnomex_jar};
+my $lustre_path   = $watch->config->{UCGD}->{lustre_path};
+my $properties    = $watch->config->{gnomex}->{properties};
+my $gnomex_jar    = $watch->config->{gnomex}->{gnomex_jar};
+my $resource_path = $watch->config->{UCGD}->{resource_ugp_path};
 
 check_request_db();
 analysis_report();
@@ -209,7 +206,7 @@ sub analysis_report {
     ## update UGP table if needed first.
     my $new_ref = _ugp_table_update($name_ref);
 
-    open( my $FH, '>', 'processing_report.txt');
+    open( my $FH, '>', "$resource_path/processing_report.txt");
 
     foreach my $project ( @{$name_ref} ) {
         next if ( $project->[0] eq 'NULL' );
