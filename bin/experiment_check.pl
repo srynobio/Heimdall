@@ -188,7 +188,7 @@ sub _create_gnomex_analysis {
         "INSERT INTO UGP (check_project_id, AnalysisDataPath, project, AnalysisID, status) VALUES (?,?,?,?,?);"
     );
     foreach my $id (@project_info) {
-        $sth->execute( $id->[0], $id->[1], $id->[2], $id->[3], 'processing' );
+        $sth->execute( $id->[0], $id->[1], $id->[2], $id->[3], 'new_project' );
         $watch->update_log(
             "New Analysis: $id->[1] created for project: $id->[2]");
     }
@@ -206,7 +206,7 @@ sub analysis_report {
     ## update UGP table if needed first.
     my $new_ref = _ugp_table_update($name_ref);
 
-    open( my $FH, '>', "$resource_path/processing_report.txt");
+    open( my $FH, '>', "$resource_path/experiment_report.txt");
 
     foreach my $project ( @{$name_ref} ) {
         next if ( $project->[0] eq 'NULL' );

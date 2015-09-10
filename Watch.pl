@@ -93,7 +93,7 @@ task 'analysisData_rsync_to_islion',
 task 'nantomics_data_watch',
   group => 'chpc',
   sub {
-    my $command = 'perl nantomics_data_watch.pl';
+    my $command = 'perl nantomics/nantomics_data_watch.pl';
     my $run     = run 'data_watch',
       command => $command,
       cwd     => $heimdall_chpc;
@@ -104,7 +104,7 @@ task 'nantomics_data_watch',
 task 'test_data_watch',
   group => 'chpc',
   sub {
-    my $command = 'perl test_data_watch.pl';
+    my $command = 'perl test/test_data_watch.pl';
     my $run     = run 'data_watch',
       command => $command,
       cwd     => $heimdall_chpc;

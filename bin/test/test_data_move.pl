@@ -21,9 +21,9 @@ my $process           = $watch->config->{test_transfer}->{process};
 my $heimdall_chpc_bin = $watch->config->{UCGD}->{heimdall_chpc_bin};
 
 ## Create Filehandles.
-my $TXT  = IO::File->new("$heimdall_chpc_bin/experiment_report.txt");
-my $DATA = IO::Dir->new($process);
-my $OUT  = IO::File->new("$heimdall_chpc_bin/processed_report.txt");
+my $TXT    = IO::File->new("$heimdall_chpc_bin/experiment_report.txt");
+my $DATA   = IO::Dir->new($process);
+my $REPORT = IO::File->new("$heimdall_chpc_bin/processed_report.txt");
 
 ## create lookup of current /Process_Data collection.
 my %data_lookup;
@@ -40,7 +40,7 @@ foreach my $proj_file (<$TXT>) {
     my @parts = split /\t/, $proj_file;
 
     ## exit out if no data set to be processed.
-    next if ( !$parts[-1] eq 'processing' );
+    next if ( !$parts[-1] eq 'new_project' );
     push @dirs, $parts[1];
 }
 
@@ -72,10 +72,9 @@ $DATA->close;
 sub individuals_find {
     my $project_space = shift;
 
-    my $id_file = "$project_space/individuals.txt";
+    my $ID_FILE = IO::File->new("$project_space/individuals.txt");
 
-    my $ID_FILE = IO::File->new($id_file);
-
+    my @report;
     foreach my $indv (<$ID_FILE>) {
         chomp $indv;
 
@@ -85,11 +84,19 @@ sub individuals_find {
         if (@found) {
             individuals_move( \@found, $project_space );
 
+            ## add indiviual and projects
+            push @report, [$indv, $project_space];
+
             ## update log
             $watch->info_log("$0: $project_space updated");
         }
     }
+
+    ## print out moved individuals.
+    map { say $REPORT "$_->[0]\t$_->[1]" } @report;
+
     $ID_FILE->close;
+    $REPORT->close;
 }
 
 ## ----------------------------------------------------- ##
