@@ -11,10 +11,12 @@ my $watch = Heimdall->new(
 );
 logging to_file => 'watch.log';
 
-my $heimdall_ugp  = $watch->config->{UCGD}->{heimdall_ugp_bin};
-my $heimdall_chpc = $watch->config->{UCGD}->{heimdall_chpc_bin};
-my $lustre_rsync  = $watch->config->{rsync}->{lustre_rsync};
-my $islion_rsync  = $watch->config->{rsync}->{islion_rsync};
+my $heimdall_ugp       = $watch->config->{UCGD}->{heimdall_ugp_bin};
+my $heimdall_chpc      = $watch->config->{UCGD}->{heimdall_chpc_bin};
+my $lustre_rsync       = $watch->config->{rsync}->{lustre_rsync};
+my $islion_rsync       = $watch->config->{rsync}->{islion_rsync};
+my $resource_ugp_path  = $watch->config->{UCGD}->{resource_ugp_path};
+my $resource_chpc_path = $watch->config->{UCGD}->{resource_chpc_path};
 
 ##------------------------------------------------##
 ## UGP Server Tasks.
@@ -39,7 +41,7 @@ desc "UGP/CHPC: Will upload the processing_report.txt file to CHPC.";
 task 'upload_processing_report',
   group => 'chpc',
   sub {
-    upload "bin/processing_report.txt", "$heimdall_chpc";
+    upload "$resource_ugp_path/processing_report.txt", "$resource_chpc_path";
 };
 
 ##------------------------------------------------##

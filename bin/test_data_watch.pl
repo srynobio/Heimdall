@@ -9,13 +9,15 @@ use lib "$FindBin::Bin/../lib";
 use Heimdall;
 use IO::Dir;
 
-my $watch = Heimdall->new();
+my $watch = Heimdall->new(
+    config_file => '../heimdall.cfg',
+    log_file    => '../watch.log'
+);
 
-## set up paths.
-## add to cfg file.
-my $path    = '/scratch/ucgd/lustre/test-transfer';
-my $process = '/scratch/ucgd/lustre/test-transfer/Process_Data';
-my $xfer    = '/scratch/ucgd/lustre/test-transfer/xfer';
+## Get paths from config file.
+my $path    = $watch->config->{test_transfer}->{path};
+my $process = $watch->config->{test_transfer}->{process};
+my $xfer    = $watch->config->{test_transfer}->{xfer};
 
 ## quick check.
 unless ( -e $path and -e $process and -e $xfer ) {
