@@ -25,6 +25,6 @@ $watch->info_log("rsync of AnalysisData from lustre to islion starting");
 my $rsync = "rsync -nvr --partial AnalysisData $islion_rsync/AnalysisData";
 #my $rsync = "rsync -vr --partial AnalysisData $islion_rsync/AnalysisData";
 my $sync = `$rsync`;
-
+say $sync;
 $watch->info_log("rsync of AnalysisData from lustre to islion complete.");
 
