@@ -30,7 +30,7 @@ task experiment_check => sub {
       cwd     => $heimdall_ugp;
 
     ## this task runs on chpc.
-    do_task 'upload_processing_report';
+    do_task 'upload_experiment_report';
 };
 
 ##------------------------------------------------##
@@ -38,10 +38,10 @@ task experiment_check => sub {
 ##------------------------------------------------##
 
 desc "UGP/CHPC: Will upload the processing_report.txt file to CHPC.";
-task 'upload_processing_report',
+task 'upload_experiment_report',
   group => 'chpc',
   sub {
-    upload "$resource_ugp_path/processing_report.txt", "$resource_chpc_path";
+    upload "$resource_ugp_path/experiment_report.txt", "$resource_chpc_path";
 };
 
 ##------------------------------------------------##
