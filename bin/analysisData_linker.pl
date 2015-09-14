@@ -51,10 +51,10 @@ my $whoami = `whoami`;
 chomp $whoami;
 
 # Get paths from config file.
-my @data_dir          = ( $watch->config->{UCGD}->{lustre_data} );
-my $lustre_path       = $watch->config->{UCGD}->{lustre_path};
-my $project_path      = $watch->config->{UCGD}->{project_path};
-my $resource_path     = $watch->config->{UCGD}->{resource_chpc_path};
+my @data_dir          = ( $watch->config->{main}->{lustre_data} );
+my $lustre_path       = $watch->config->{main}->{lustre_path};
+my $project_path      = $watch->config->{main}->{project_path};
+my $resource_path     = $watch->config->{main}->{resource_chpc_path};
 
 ## Default to current.
 $output //= '.';
@@ -121,10 +121,11 @@ sub project_analysis_link {
     chdir $project_path;
     foreach my $project (<$FH>) {
         chomp $project;
-        my @parts = split /\t/, $project;
+        my @parts      = split /\t/, $project;
+        my @path_parts = split /\//, $parts[1];
 
-        my @path_data = split /\//, $parts[1];
-        `ln -s $lustre_path$parts[1] .`;
+        symlink( $parts[1], $path_parts[8] );
+        $watch->info_log("$0: $whoami updated symlinks in /Project space.");
     }
 }
 

@@ -18,10 +18,10 @@ my $watch = Heimdall->new(
 my $dbh = $watch->dbh;
 
 ## get paths from config file.
-my $lustre_path   = $watch->config->{UCGD}->{lustre_path};
+my $lustre_path   = $watch->config->{main}->{lustre_path};
 my $properties    = $watch->config->{gnomex}->{properties};
 my $gnomex_jar    = $watch->config->{gnomex}->{gnomex_jar};
-my $resource_path = $watch->config->{UCGD}->{resource_ugp_path};
+my $resource_path = $watch->config->{main}->{resource_ugp_path};
 
 check_request_db();
 analysis_report();

@@ -16,7 +16,7 @@ my $watch = Heimdall->new(
 );
 
 ## get path to resources
-my $resource_path = $watch->config->{UCGD}->{resource_chpc_path};
+my $resource_path = $watch->config->{main}->{resource_chpc_path};
 my @dir           = $watch->config->{repository}->{lustre_repo};
 
 my $facl_files = "$resource_path/ACL_PROJECT_FILE";
