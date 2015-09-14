@@ -1,13 +1,14 @@
 use Rex -feature => ['1.0'];
 use feature 'say';
 use FindBin;
-use lib "$FindBin::Bin/../lib";
+use lib "$FindBin::Bin/lib";
+#use lib "$FindBin::Bin/../lib";
 use Heimdall;
 
 ## Set up the utils object.
 my $watch = Heimdall->new(
-    config_file => 'heimdall.cfg',
-    log_file    => 'watch.log'
+    config_file => 'bin/heimdall.cfg',
+    log_file    => 'bin/watch.log'
 );
 logging to_file => 'watch.log';
 
@@ -46,6 +47,7 @@ task 'upload_experiment_report',
 
 ##------------------------------------------------##
 
+desc "CHPC: Check for newly created Repository directories on islion and cp to lustre.";
 task 'directories_create',
   group => 'chpc',
   sub {
@@ -57,6 +59,7 @@ task 'directories_create',
 
 ##------------------------------------------------##
 
+desc "CHPC: Make a symlink of all project in Repository to /Project space.";
 task 'link_projects',
   group => 'chpc',
   sub {
@@ -68,6 +71,7 @@ task 'link_projects',
 
 ##------------------------------------------------##
 
+desc "CHPC: rsync ExperimentData from islion to lustre.";
 task 'experimentData_rsync_to_lustre',
   group => 'chpc',
   sub {
@@ -79,6 +83,7 @@ task 'experimentData_rsync_to_lustre',
 
 ##------------------------------------------------##
 
+desc "CHPC: rsync AnalysisData from lustre to islion.";
 task 'analysisData_rsync_to_islion',
   group => 'chpc',
   sub {
@@ -90,6 +95,7 @@ task 'analysisData_rsync_to_islion',
 
 ##------------------------------------------------##
 
+desc "CHPC: Watch and control nantomics transfer space.";
 task 'nantomics_data_watch',
   group => 'chpc',
   sub {
@@ -101,6 +107,7 @@ task 'nantomics_data_watch',
 
 ##------------------------------------------------##
 
+desc "CHPC: Watch and control test transfer space.";
 task 'test_data_watch',
   group => 'chpc',
   sub {

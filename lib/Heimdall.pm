@@ -38,25 +38,6 @@ has config => ( is => 'rw' );
 ##--- METHODS ------------------------------------------##
 ##------------------------------------------------------##
 
-#sub BUILDARGS {
-#    my $self = shift;
-#
-#    ## this is done so it can be called from
-#    ## anywhere.
-#    my $path = abs_path($0);
-#    $path =~ s/(.*Heimdall)(.*$)/$1/;
-#
-#    my $log = $path . "/watch.log";
-#    my $cfg = $path . "/heimdall.cfg";
-#
-#    return {
-#        config_file => $cfg,
-#        log_file    => $log,
-#    };
-#}
-
-##------------------------------------------------------##
-
 sub _trigger_config_file {
     my $self = shift;
 
