@@ -116,7 +116,7 @@ sub list_projects {
 sub project_analysis_link {
     my $FH = IO::File->new("$resource_path/experiment_report.txt");
 
-    $watch->info_log("$0: creating softlink to analysisData directories");
+    $watch->info_log("$0: $whoami updating symlinks in /Project space.");
 
     chdir $project_path;
     foreach my $project (<$FH>) {
@@ -125,7 +125,6 @@ sub project_analysis_link {
         my @path_parts = split /\//, $parts[1];
 
         symlink( $parts[1], $path_parts[8] );
-        $watch->info_log("$0: $whoami updated symlinks in /Project space.");
     }
 }
 

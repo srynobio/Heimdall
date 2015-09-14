@@ -19,11 +19,9 @@ my $watch = Heimdall->new(
 my $lustre_rsync = $watch->config->{rsync}->{lustre_rsync};
 my $islion_rsync = $watch->config->{rsync}->{islion_rsync};
 
-chdir $lustre_rsync;
 $watch->info_log("rsync of AnalysisData from lustre to islion starting");
+chdir $lustre_rsync;
 
 my $rsync = "rsync -nvr --partial AnalysisData $islion_rsync";
-say $rsync;
-#my $sync  = `$rsync`;
+my $sync  = `$rsync`;
 
-$watch->info_log("rsync of AnalysisData from lustre to islion complete.");
