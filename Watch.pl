@@ -110,10 +110,10 @@ desc "CHPC: Watch and control test transfer space.";
 task 'test_data_watch',
   group => 'chpc',
   sub {
-    my $command = 'perl test/test_data_watch.pl';
+    my $command = 'perl test_data_watch.pl';
     my $run     = run 'data_watch',
       command => $command,
-      cwd     => $heimdall_chpc;
+      cwd     => "$heimdall_chpc/test";
 };
 
 ##------------------------------------------------##

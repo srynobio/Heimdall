@@ -76,9 +76,8 @@ elsif (@bams) {
 }
 
 ## move bam files.
-chdir $xfer if (@moves);
 map { 
-    `mv $_ $process`;
+    `mv $xfer/$_ $process`;
     $watch->info_log("$0: $_ file moved into $process directory");
 } @moves;
 
