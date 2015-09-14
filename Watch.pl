@@ -2,7 +2,6 @@ use Rex -feature => ['1.0'];
 use feature 'say';
 use FindBin;
 use lib "$FindBin::Bin/lib";
-#use lib "$FindBin::Bin/../lib";
 use Heimdall;
 
 ## Set up the utils object.
@@ -10,7 +9,7 @@ my $watch = Heimdall->new(
     config_file => 'bin/heimdall.cfg',
     log_file    => 'bin/watch.log'
 );
-logging to_file => 'watch.log';
+logging to_file => $watch->log_file;
 
 my $heimdall_ugp       = $watch->config->{UCGD}->{heimdall_ugp_bin};
 my $heimdall_chpc      = $watch->config->{UCGD}->{heimdall_chpc_bin};

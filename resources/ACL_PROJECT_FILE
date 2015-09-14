@@ -1,0 +1,11 @@
+# file: test
+# owner: ugpuser
+# group: ucgd
+user::rw-
+user:ugpuser:rwx	#effective:rw-
+group::rwx	#effective:rw-
+group:ucgd:rwx	#effective:rw-
+group:ugpuser:rwx	#effective:rw-
+mask::rw-
+other::---
+
