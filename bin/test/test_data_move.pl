@@ -10,10 +10,14 @@ use Heimdall;
 use IO::File;
 use File::Copy qw(move);
 
-## Set up utils object.
-my $watch = Heimdall->new(
-    config_file => '../heimdall.cfg',
-    log_file    => '../watch.log'
+BEGIN {
+    ## needed environmental variable
+    $ENV{heimdall_config} = '/uufs/chpc.utah.edu/common/home/u0413537/Heimdall/bin/heimdall.cfg';
+}
+
+## make object for record keeping.
+my $watch = Heimdall->new( 
+    config_file => $ENV{heimdall_config},
 );
 
 ## Get paths from config

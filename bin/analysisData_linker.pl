@@ -11,6 +11,11 @@ use FindBin;
 use lib "$FindBin::Bin/../lib";
 use Heimdall;
 
+BEGIN {
+    ## needed environmental variable
+    $ENV{heimdall_config} = '/uufs/chpc.utah.edu/common/home/u0413537/Heimdall/bin/heimdall.cfg';
+}
+
 my $usage = << "EOU";
 
 Synopsis:
@@ -44,8 +49,7 @@ GetOptions(
 
 ## make object for record keeping.
 my $watch = Heimdall->new(
-    config_file => 'heimdall.cfg',
-    log_file    => 'watch.log'
+    config_file => $ENV{heimdall_config},
 );
 my $whoami = `whoami`;
 chomp $whoami;
