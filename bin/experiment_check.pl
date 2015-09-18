@@ -18,7 +18,7 @@ BEGIN {
 ## make object for record keeping.
 my $watch = Heimdall->new( 
     config_file => $ENV{heimdall_config},
-)
+);
 my $dbh = $watch->dbh;
 
 ## get paths from config file.

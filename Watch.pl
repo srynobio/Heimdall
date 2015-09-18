@@ -4,10 +4,14 @@ use FindBin;
 use lib "$FindBin::Bin/lib";
 use Heimdall;
 
-## Set up the utils object.
-my $watch = Heimdall->new(
-    config_file => 'bin/heimdall.cfg',
-    log_file    => 'bin/watch.log'
+BEGIN {
+    ## needed environmental variable
+    $ENV{heimdall_config} = '/home/srynearson/Heimdall/bin/heimdall.cfg';
+}
+
+## make object for record keeping.
+my $watch = Heimdall->new( 
+    config_file => $ENV{heimdall_config},
 );
 logging to_file => $watch->log_file;
 
