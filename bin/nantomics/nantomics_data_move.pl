@@ -7,23 +7,26 @@ use autodie;
 use FindBin;
 use lib "$FindBin::Bin/../../lib";
 use Heimdall;
-use IO::File;
+use IO::Dir;
 use File::Copy qw(move);
 
-## Set up utils object.
-my $watch = Heimdall->new(
-    config_file => '../heimdall.cfg',
-    log_file    => '../watch.log'
-);
+BEGIN {
+    ## needed environmental variable
+    $ENV{heimdall_config} =
+      '/uufs/chpc.utah.edu/common/home/u0413537/Heimdall/bin/heimdall.cfg';
+}
+
+## make object for record keeping.
+my $watch = Heimdall->new( config_file => $ENV{heimdall_config}, );
 
 ## Get paths from config
-my $process           = $watch->config->{nantomics_transfer}->{process};
-my $heimdall_chpc_bin = $watch->config->{UCGD}->{heimdall_chpc_bin};
+my $process                = $watch->config->{nantomics_transfer}->{process};
+my $heimdall_chpc_resource = $watch->config->{main}->{resource_chpc_path};
 
 ## Create Filehandles.
-my $TXT    = IO::File->new("$heimdall_chpc_bin/experiment_report.txt");
-my $DATA   = IO::Dir->new($process);
-my $REPORT = IO::File->new("$heimdall_chpc_bin/processed_report.txt");
+open( my $TXT,    '<',  "$heimdall_chpc_resource/experiment_report.txt" );
+open( my $REPORT, '>>', "$heimdall_chpc_resource/processed_report.txt" );
+my $DATA = IO::Dir->new($process);
 
 ## create lookup of current /Process_Data collection.
 my %data_lookup;
@@ -40,7 +43,7 @@ foreach my $proj_file (<$TXT>) {
     my @parts = split /\t/, $proj_file;
 
     ## exit out if no data set to be processed.
-    next if ( !$parts[-1] eq 'new_project' );
+    next unless ( $parts[-1] eq 'new_project' );
     push @dirs, $parts[1];
 }
 
@@ -58,13 +61,14 @@ foreach my $project_space (@dirs) {
         individuals_find($project_space);
     }
     else {
-        $watch->error_log(
+        $watch->info_log(
             "$0: individual.txt file not found for: $project_space");
     }
 }
 
 ## clean up.
-$TXT->close;
+close $TXT;
+close $REPORT;
 $DATA->close;
 
 ## ----------------------------------------------------- ##
@@ -72,20 +76,20 @@ $DATA->close;
 sub individuals_find {
     my $project_space = shift;
 
-    my $ID_FILE = IO::File->new("$project_space/individuals.txt");
+    open( my $ID_FILE, '<', "$project_space/individuals.txt" );
 
     my @report;
     foreach my $indv (<$ID_FILE>) {
         chomp $indv;
 
         ## find file that match individuals.
-        my @found = grep { /$indv/ } keys %data_lookup;
+        my @found = grep { $_ =~ /$indv/ } keys %data_lookup;
 
         if (@found) {
             individuals_move( \@found, $project_space );
 
             ## add indiviual and projects
-            push @report, [$indv, $project_space];
+            push @report, [ $indv, $project_space ];
 
             ## update log
             $watch->info_log("$0: $project_space updated");
@@ -95,8 +99,7 @@ sub individuals_find {
     ## print out moved individuals.
     map { say $REPORT "$_->[0]\t$_->[1]" } @report;
 
-    $ID_FILE->close;
-    $REPORT->close;
+    close $ID_FILE;
 }
 
 ## ----------------------------------------------------- ##
@@ -128,40 +131,40 @@ sub individuals_move {
         my $path_file = "$process/$file";
 
         if ( $file =~ /_recal.ba/ ) {
-            move( $path_file, $analysis_paths[1] );
+            move( $path_file, "$analysis_paths[1]/$file" );
         }
         elsif ( $file =~ /stats$/ ) {
-            move( $path_file, $analysis_paths[7] );
+            move( $path_file, "$analysis_paths[7]/$file" );
         }
         elsif ( $file =~ /flagstat$/ ) {
-            move( $path_file, $analysis_paths[6] );
+            move( $path_file, "$analysis_paths[6]/$file" );
         }
         elsif ( $file =~ /(chr|sorted_Dedup)/ ) {
-            move( $path_file, $analysis_paths[3] );
+            move( $path_file, "$analysis_paths[3]/$file" );
         }
         elsif ( $file =~ /bam/ ) {
-            move( $path_file, $analysis_paths[2] );
+            move( $path_file, "$analysis_paths[2]/$file" );
         }
         elsif ( $file =~ /^UGPp/ ) {
             ## first step should not have data here.
         }
         elsif ( $file =~ /gCat/ ) {
-            move( $path_file, $analysis_paths[10] );
+            move( $path_file, "$analysis_paths[10]/$file" );
         }
         elsif ( $file =~ /pdf$/ ) {
-            move( $path_file, $analysis_paths[5] );
+            move( $path_file, "$analysis_paths[5]/$file" );
         }
         elsif ( $file =~ /R$/ ) {
-            move( $path_file, $analysis_paths[5] );
+            move( $path_file, "$analysis_paths[5]/$file" );
         }
         elsif ( $file =~ /fastqc/ ) {
-            move( $path_file, $analysis_paths[8] );
+            move( $path_file, "$analysis_paths[8]/$file" );
         }
         elsif ( $file =~ /gz/ ) {
-            move( $path_file, $analysis_paths[3] );
+            move( $path_file, "$analysis_paths[3]/$file" );
         }
         else {
-            move( $path_file, $analysis_paths[3] );
+            move( $path_file, "$analysis_paths[3]/$file" );
         }
     }
 }
