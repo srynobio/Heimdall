@@ -7,55 +7,62 @@ use autodie;
 use FindBin;
 use lib "$FindBin::Bin/../lib";
 use Heimdall;
-
 use File::Find;
-
-use IO::Dir;
 
 BEGIN {
     ## needed environmental variable
-    $ENV{heimdall_config} = '/uufs/chpc.utah.edu/common/home/u0413537/Heimdall/bin/heimdall.cfg';
+    $ENV{heimdall_config} =
+      '/uufs/chpc.utah.edu/common/home/u0413537/Heimdall/bin/heimdall.cfg';
 }
 
 ## make object for record keeping.
-my $watch = Heimdall->new( 
-    config_file => $ENV{heimdall_config},
+my $watch = Heimdall->new( config_file => $ENV{heimdall_config}, );
+
+## Get needed path info.
+my @islion_repo = ( $watch->config->{repository}->{islion_repo} );
+my @lustre_repo = ( $watch->config->{repository}->{lustre_repo} );
+
+## make shortend paths for later
+( my $islion = $islion_repo[0] ) =~ s/(.*)AnalysisData/$1/;
+( my $lustre = $lustre_repo[0] ) =~ s/(.*)AnalysisData/$1/;
+
+my %lustre_directories;
+my %islion_directories;
+
+## islion find.
+find(
+    {
+        wanted   => \&islion_build_lookup,
+        bydepth  => 1,
+        no_chdir => 1,
+    },
+    @islion_repo
 );
 
-## Get paths from config file.
-my $islion_repo = $watch->config->{repository}->{islion_repo};
-#my $lustre_repo = $watch->config->{repository}->{lustre_repo};
+## lustre find.
+find(
+    {
+        wanted   => \&lustre_build_lookup,
+        bydepth  => 1,
+        no_chdir => 1,
+    },
+    @lustre_repo
+);
 
-## Make object and create lookups.
-my $iso_dir = IO::Dir->new($islion_repo);
-my $lus_dir = IO::Dir->new($lustre_repo);
-
-## Table for lustre
-my %lus_lookup;
-foreach my $path ( $lus_dir->read ) {
-    next if ( $path =~ /(\.|\.\.)/ );
-    $lus_lookup{$path}++;
-}
-
-## Table for islion
-my %isl_lookup;
-foreach my $path ( $iso_dir->read ) {
-    next if ( $path =~ /(\.|\.\.)/ );
-    $isl_lookup{$path}++;
-}
-
-## discover any directories which need to be made.
+## only work with difference.
 my $record;
-foreach my $store ( keys %isl_lookup ) {
-    unless ( $lus_lookup{$store} ) {
-        my $cmd = "cp -r $islion_repo/$store $lustre_repo/$store";
-        `$cmd`;
+for my $dirs ( keys %islion_directories ) {
+    chomp $dirs;
+    next if ( $lustre_directories{$dirs} );
 
-        $watch->update_log(
-            "directory $islion_repo/$store being copied to $lustre_repo/$store"
-        );
-        $record++;
-        next;
+    $record++;
+    ## cp from islion to lustre
+    my $cmd = sprintf( "cp -r %s%s %s%s", $islion, $dirs, $lustre, $dirs );
+    $watch->update_log( "Directory $dirs being copied to lustre" );
+
+    system($cmd);
+    if ( $? == -1 ) {
+        $watch->error_log("Directory $dirs could not be created.");
     }
 }
 
@@ -63,3 +70,31 @@ foreach my $store ( keys %isl_lookup ) {
 if ( !$record ) {
     $watch->info_log("No directories to copy to lustre AnalysisData");
 }
+
+## ------------------------------------- ##
+
+sub islion_build_lookup {
+
+    my $dir = $File::Find::dir;
+
+    if ( $dir =~ /UGP$/ ) {
+        ## isolate only shared paths
+        ( my $shared_struct = $dir ) =~ s/(.*)(AnalysisData)(.*)$/$2$3/;
+        $islion_directories{$shared_struct}++;
+    }
+}
+
+## ------------------------------------- ##
+
+sub lustre_build_lookup {
+
+    my $dir = $File::Find::dir;
+
+    if ( $dir =~ /UGP$/ ) {
+        ## isolate only shared paths
+        ( my $shared_struct = $dir ) =~ s/(.*)(AnalysisData)(.*)$/$2$3/;
+        $lustre_directories{$shared_struct}++;
+    }
+}
+
+## ------------------------------------- ##
