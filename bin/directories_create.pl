@@ -7,6 +7,9 @@ use autodie;
 use FindBin;
 use lib "$FindBin::Bin/../lib";
 use Heimdall;
+
+use File::Find;
+
 use IO::Dir;
 
 BEGIN {
@@ -21,7 +24,7 @@ my $watch = Heimdall->new(
 
 ## Get paths from config file.
 my $islion_repo = $watch->config->{repository}->{islion_repo};
-my $lustre_repo = $watch->config->{repository}->{lustre_repo};
+#my $lustre_repo = $watch->config->{repository}->{lustre_repo};
 
 ## Make object and create lookups.
 my $iso_dir = IO::Dir->new($islion_repo);

@@ -11,14 +11,11 @@ use lib "$FindBin::Bin/../lib";
 use Heimdall;
 
 BEGIN {
-    ## needed environmental variable
     $ENV{heimdall_config} = '/home/srynearson/Heimdall/bin/heimdall.cfg';
 }
 
 ## make object for record keeping.
-my $watch = Heimdall->new( 
-    config_file => $ENV{heimdall_config},
-);
+my $watch = Heimdall->new( config_file => $ENV{heimdall_config}, );
 my $dbh = $watch->dbh;
 
 ## get paths from config file.
@@ -64,7 +61,7 @@ sub check_request_db {
           "select name from Project where idProject = "
           . $request->{idProject} . ";";
         my $proj_ref = $dbh->selectall_arrayref($project_statement);
-    
+
         my $project_name = $proj_ref->[0][0];
         $project_name =~ s/[^A-Za-z0-9]/ /g;
         $project_name =~ s/\s+/_/g;
@@ -137,15 +134,16 @@ sub _create_gnomex_analysis {
               . "-name \"%s\" -lab \"%s\" -folderName \"%s\" -organism \"Human\" "
               . "-genomeBuild human_g1k_v37 -analysisType \"UGP Analysis\" -analysisProtocal \"UGP\" "
               . "-experiment %s\n",
-            $properties, $gnomex_jar,
-            $project_name, $lab, $folder, $project );
+            $gnomex_jar, $properties, $project_name, $lab, $folder, $project );
 
         # run and parse result.
         my $result = `$cmd`;
 
-        if ( !length $result > 1 ) {
-            push @errors, "project $project could not be created";
-            next;
+        ## check system return for errors.
+        if ($?) {
+            $watch->error_log(
+                "CreateAnalysisMain for $project could not be created. Message: $?"
+            );
         }
 
         my $ref        = XMLin($result);
@@ -156,22 +154,12 @@ sub _create_gnomex_analysis {
         my $new_dir = "$filepath/$folder/UGP";
         if ( !-d $new_dir ) {
             make_path(
-                "$new_dir",
-                "$new_dir/Data",
-                "$new_dir/Data/PolishedBams",
-                "$new_dir/Data/Primary_Data",
-                "$new_dir/QC",
-                "$new_dir/Intermediate_Files",
-                "$new_dir/Analysis",
-                "$new_dir/Reports/flagstat",
-                "$new_dir/Reports/stats",
-                "$new_dir/Reports/fastqc",
-                "$new_dir/VCF/GVCFs",
-                "$new_dir/VCF/Complete",
-                {
-                    owner => 'ugpuser',
-                    group => 'ugpuser'
-                }
+                "$new_dir",                   "$new_dir/Data",
+                "$new_dir/Data/PolishedBams", "$new_dir/Data/Primary_Data",
+                "$new_dir/QC",                "$new_dir/Intermediate_Files",
+                "$new_dir/Analysis",          "$new_dir/Reports/flagstat",
+                "$new_dir/Reports/stats",     "$new_dir/Reports/fastqc",
+                "$new_dir/VCF/GVCFs",         "$new_dir/VCF/Complete",
             );
         }
 
@@ -210,7 +198,7 @@ sub analysis_report {
     ## update UGP table if needed first.
     my $new_ref = _ugp_table_update($name_ref);
 
-    open( my $FH, '>', "$resource_path/experiment_report.txt");
+    open( my $FH, '>', "$resource_path/experiment_report.txt" );
 
     foreach my $project ( @{$name_ref} ) {
         next if ( $project->[0] eq 'NULL' );
@@ -240,7 +228,6 @@ sub create_individual_file {
         next if ( $id->[1] eq 'NULL' );
 
         my ( $idRequest, undef ) = split /:/, $id->[0];
-        my @project = split /\//, $id->[1];
         $requests{$idRequest} = $id->[1];
     }
 
@@ -249,7 +236,10 @@ sub create_individual_file {
           "select idRequest, name from Sample where idRequest = $id;";
         my $sample_ref = $dbh->selectall_arrayref($sample_statement);
 
+        ## remove trailing UGP dir.
+        $requests{$id} =~ s/UGP$//;
         my $indiv_file = $requests{$id} . '/individuals.txt';
+
         open( my $OUT, '>', $indiv_file );
 
         foreach my $project ( @{$sample_ref} ) {
