@@ -150,6 +150,9 @@ sub _create_gnomex_analysis {
         my $filepath   = $ref->{filePath};
         my $idAnalysis = $ref->{idAnalysis};
 
+        ## remove begining UGP from filepath.
+        $filepath =~ s/\/UGP//g;
+
         ## create the empty file structure.
         my $new_dir = "$filepath/$folder/UGP";
         if ( !-d $new_dir ) {
