@@ -57,6 +57,8 @@ if ( !@dirs ) {
 foreach my $project_space (@dirs) {
     chomp $project_space;
 
+    $project_space =~ s/\/UGP$//;
+
     if ( -e "$project_space/individuals.txt" ) {
         individuals_find($project_space);
     }

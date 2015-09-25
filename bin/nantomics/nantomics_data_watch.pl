@@ -24,6 +24,18 @@ my $path    = $watch->config->{nantomics_transfer}->{path};
 my $process = $watch->config->{nantomics_transfer}->{process};
 my $xfer    = $watch->config->{nantomics_transfer}->{xfer};
 
+## check for current files in Process directory
+my $PROCESS = IO::Dir->new($process);
+my $count;
+for my $file ($PROCESS->read) {
+    chomp $file;
+    next unless ( -e $file );
+    $count++;
+}
+if ($count) {
+    $watch->error_log("$0: Process directory contains files, exiting");
+}
+
 ## quick check.
 unless ( -e $path and -e $process and -e $xfer ) {
     $watch->error_log(
@@ -84,5 +96,5 @@ elsif (@bams) {
 foreach my $mv (@moves) {
     chomp $mv;
     `mv "$xfer/$_ $process`;
-    $watch->info_log("$0: $_ file moved into $process directory");
+    $watch->info_log("$0: $_ $mv file moved into $process directory");
 }
