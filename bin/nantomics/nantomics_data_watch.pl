@@ -29,11 +29,11 @@ my $PROCESS = IO::Dir->new($process);
 my $count;
 for my $file ($PROCESS->read) {
     chomp $file;
-    next unless ( -e $file );
+    next if ( $file =~ /(\.|\..)/);
     $count++;
 }
 if ($count) {
-    $watch->error_log("$0: Process directory contains files, exiting");
+    $watch->error_log("$0: Process directory contains files, or directories. Exiting");
 }
 
 ## quick check.
@@ -93,8 +93,10 @@ elsif (@bams) {
 }
 
 ## move bam files.
-foreach my $mv (@moves) {
+for my $mv (@moves) {
     chomp $mv;
-    `mv "$xfer/$_ $process`;
-    $watch->info_log("$0: $_ $mv file moved into $process directory");
+    my $full_path_file = "$xfer/$mv";
+    eval { `mv $full_path_file $process`; };
+    if ( $@ ) { $watch->error_log("$0: Error moving file: $@"); }
+    $watch->info_log("$0: $mv file moved into $process directory");
 }

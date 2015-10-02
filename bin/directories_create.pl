@@ -51,7 +51,6 @@ find(
 );
 ## only work with difference.
 my $record;
-
 for my $dirs ( keys %islion_directories ) {
     chomp $dirs;
     next if ( $lustre_directories{$dirs} );

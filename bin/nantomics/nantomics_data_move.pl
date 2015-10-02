@@ -25,7 +25,7 @@ my $heimdall_chpc_resource = $watch->config->{main}->{resource_chpc_path};
 
 ## Create Filehandles.
 open( my $TXT,    '<',  "$heimdall_chpc_resource/experiment_report.txt" );
-open( my $REPORT, '>>', "$heimdall_chpc_resource/processed_report.txt" );
+open( my $REPORT, '>>', "$heimdall_chpc_resource/processed_to_GVCF_report.txt");
 my $DATA = IO::Dir->new($process);
 
 ## create lookup of current /Process_Data collection.
@@ -48,7 +48,7 @@ foreach my $proj_file (<$TXT>) {
 }
 
 ## exit if no work
-if ( !@dirs ) {
+if ( ! @dirs ) {
     $watch->info_log("$0: No data which needs processing found.");
     exit(0);
 }
@@ -146,9 +146,6 @@ sub individuals_move {
         }
         elsif ( $file =~ /bam/ ) {
             move( $path_file, "$analysis_paths[2]/$file" );
-        }
-        elsif ( $file =~ /^UGPp/ ) {
-            ## first step should not have data here.
         }
         elsif ( $file =~ /gCat/ ) {
             move( $path_file, "$analysis_paths[10]/$file" );

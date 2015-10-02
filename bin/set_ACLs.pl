@@ -9,10 +9,15 @@ use FindBin;
 use lib "$FindBin::Bin/../lib";
 use Heimdall;
 
-# Get base utilities
-my $watch = Heimdall->new(
-    config_file => 'heimdall.cfg',
-    log_file    => 'watch.log'
+BEGIN {
+    ## needed environmental variable
+    $ENV{heimdall_config} =
+      '/uufs/chpc.utah.edu/common/home/u0413537/Heimdall/bin/heimdall.cfg';
+}
+
+## make object for record keeping.
+my $watch = Heimdall->new( 
+    config_file => $ENV{heimdall_config},
 );
 
 ## get path to resources
