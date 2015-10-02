@@ -97,6 +97,44 @@ task 'analysisData_rsync_to_islion',
 };
 
 ##------------------------------------------------##
+## nantomics 
+##------------------------------------------------##
+
+desc "CHPC: Watch and control nantomics transfer space.";
+task 'nantomics_data_watch',
+  group => 'chpc',
+  sub {
+    my $command = 'perl nantomics_data_watch.pl';
+    my $run     = run 'nantomics_watch',
+      command => $command,
+      cwd     => "$heimdall_chpc/nantomics";
+};
+
+
+desc "CHPC: Move BAM files from nantomics/xfer to nantomics/Process_Data.";
+task 'nantomics_data_move',
+  group => 'chpc',
+  sub {
+    my $command = 'perl nantomics_data_move.pl';
+    my $run     = run 'nantomics_move',
+      command => $command,
+      cwd     => "$heimdall_chpc/nantomics";
+};
+
+
+desc "CHPC: Run the UGP Pipeline from the nantomics/Process_Data directory.";
+task 'nantomics_data_run_to_GVCF',
+  group => 'chpc',
+  sub {
+    my $command = 'perl nantomics_data_run_to_GVCF.pl';
+    my $run     = run 'nantomics_run',
+      command => $command,
+      cwd     => "$heimdall_chpc/nantomics";
+};
+
+##------------------------------------------------##
+## washu
+##------------------------------------------------##
 
 desc "CHPC: Watch and control washu transfer space.";
 task 'washu_data_watch',
@@ -110,18 +148,7 @@ task 'washu_data_watch',
 };
 
 ##------------------------------------------------##
-
-desc "CHPC: Watch and control nantomics transfer space.";
-task 'nantomics_data_watch',
-  group => 'chpc',
-  sub {
-    my $command = 'perl nantomics_data_watch.pl';
-    my $run     = run 'nantomics_watch',
-      command => $command,
-      cwd     => "$heimdall_chpc/nantomics",
-      ;
-};
-
+## test
 ##------------------------------------------------##
 
 desc "CHPC: Watch and control test transfer space.";
