@@ -22,8 +22,17 @@ my $islion_rsync       = $watch->config->{rsync}->{islion_rsync};
 my $resource_ugp_path  = $watch->config->{main}->{resource_ugp_path};
 my $resource_chpc_path = $watch->config->{main}->{resource_chpc_path};
 
-## Add addition path to search
-path "/uufs/kingspeak.peaks/sys/pkg/slurm/std/bin/";
+## Add addition paths to search
+path 
+    "/uufs/kingspeak.peaks/sys/pkg/slurm/std/bin/",
+    "/bin",
+    "/sbin",
+    "/usr/bin",
+    "/usr/sbin",
+    "/usr/local/bin",
+    "/usr/local/sbin",
+    "/usr/pkg/bin",
+    "/usr/pkg/sbin";
 
 ##------------------------------------------------##
 ## UGP Server Tasks.
@@ -128,7 +137,7 @@ desc "CHPC: Run the UGP Pipeline from the nantomics/Process_Data directory.";
 task 'nantomics_data_run_to_GVCF',
   group => 'chpc',
   sub {
-    my $command = 'source ~/.bash_profile; perl nantomics_data_run_to_GVCF.pl';
+    my $command = 'perl nantomics_data_run_to_GVCF.pl';
     my $run     = run 'nantomics_run',
       command => $command,
       cwd     => "$heimdall_chpc/nantomics";
