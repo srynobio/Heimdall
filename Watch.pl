@@ -62,14 +62,8 @@ task 'upload_experiment_report',
 
 ##------------------------------------------------##
 
-<<<<<<< HEAD
 desc "CHPC: Check for newly created Repository directories on islion and cp to lustre.";
 task 'mirror_directories',
-=======
-desc
-"CHPC: Check for newly created Repository directories on islion and cp to lustre.";
-task 'directories_create',
->>>>>>> 9afbe38ec026f3e0e914a38a5cefbf954f333353
   group => 'chpc',
   sub {
     my $command = "perl mirror_directories.pl";
