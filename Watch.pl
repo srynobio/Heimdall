@@ -51,10 +51,10 @@ task 'upload_experiment_report',
 ##------------------------------------------------##
 
 desc "CHPC: Check for newly created Repository directories on islion and cp to lustre.";
-task 'directories_create',
+task 'mirror_directories',
   group => 'chpc',
   sub {
-    my $command = "perl directories_create.pl";
+    my $command = "perl mirror_directories.pl";
     my $run     = run "dir_check",
       command => $command,
       cwd     => $heimdall_chpc;
@@ -101,10 +101,10 @@ task 'analysisData_rsync_to_islion',
 ##------------------------------------------------##
 
 desc "CHPC: Watch and control nantomics transfer space.";
-task 'nantomics_data_watch',
+task 'nantomics_data_tracker',
   group => 'chpc',
   sub {
-    my $command = 'perl nantomics_data_watch.pl';
+    my $command = 'perl nantomics_data_tracker.pl';
     my $run     = run 'nantomics_watch',
       command => $command,
       cwd     => "$heimdall_chpc/nantomics";

@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-# nantomics_data_watch.pl
+# nantomics_data_tracker.pl
 use strict;
 use warnings;
 use feature 'say';
@@ -80,7 +80,7 @@ my @moves;
 if ( @bams and keys %tranf_lookup ) {
     foreach my $file (@bams) {
         if ( $tranf_lookup{$file} ) {
-            $watch->info_log("$0: File $file is currently transfering");
+            $watch->info_log("$0: File $file is currently transferring");
             next;
         }
         else {

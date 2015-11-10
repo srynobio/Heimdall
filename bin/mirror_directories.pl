@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-# directories_create.pl
+# mirror_directories.pl
 use strict;
 use warnings;
 use feature 'say';
@@ -49,6 +49,7 @@ find(
     },
     @lustre_analysis_path
 );
+
 ## only work with difference.
 my $record;
 for my $dirs ( keys %islion_directories ) {
