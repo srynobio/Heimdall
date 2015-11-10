@@ -22,6 +22,18 @@ my $islion_rsync       = $watch->config->{rsync}->{islion_rsync};
 my $resource_ugp_path  = $watch->config->{main}->{resource_ugp_path};
 my $resource_chpc_path = $watch->config->{main}->{resource_chpc_path};
 
+## Add addition paths to search
+path 
+    "/uufs/kingspeak.peaks/sys/pkg/slurm/std/bin/",
+    "/bin",
+    "/sbin",
+    "/usr/bin",
+    "/usr/sbin",
+    "/usr/local/bin",
+    "/usr/local/sbin",
+    "/usr/pkg/bin",
+    "/usr/pkg/sbin";
+
 ##------------------------------------------------##
 ## UGP Server Tasks.
 ##------------------------------------------------##
@@ -50,8 +62,14 @@ task 'upload_experiment_report',
 
 ##------------------------------------------------##
 
+<<<<<<< HEAD
 desc "CHPC: Check for newly created Repository directories on islion and cp to lustre.";
 task 'mirror_directories',
+=======
+desc
+"CHPC: Check for newly created Repository directories on islion and cp to lustre.";
+task 'directories_create',
+>>>>>>> 9afbe38ec026f3e0e914a38a5cefbf954f333353
   group => 'chpc',
   sub {
     my $command = "perl mirror_directories.pl";
@@ -97,7 +115,7 @@ task 'analysisData_rsync_to_islion',
 };
 
 ##------------------------------------------------##
-## nantomics 
+## nantomics
 ##------------------------------------------------##
 
 desc "CHPC: Watch and control nantomics transfer space.";
@@ -110,7 +128,6 @@ task 'nantomics_data_tracker',
       cwd     => "$heimdall_chpc/nantomics";
 };
 
-
 desc "CHPC: Move BAM files from nantomics/xfer to nantomics/Process_Data.";
 task 'nantomics_data_move',
   group => 'chpc',
@@ -120,7 +137,6 @@ task 'nantomics_data_move',
       command => $command,
       cwd     => "$heimdall_chpc/nantomics";
 };
-
 
 desc "CHPC: Run the UGP Pipeline from the nantomics/Process_Data directory.";
 task 'nantomics_data_run_to_GVCF',
@@ -162,4 +178,6 @@ task 'test_data_watch',
 };
 
 ##------------------------------------------------##
+
+1;
 
