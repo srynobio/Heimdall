@@ -32,8 +32,7 @@ my $dir = 'UGPp_Run_' . $date;
 mkdir $dir;
 chdir $dir;
 
-my $cmd = sprintf( 
-    "nohup %s -cfg %s -il %s -ql 60 -e cluster --run",
+my $cmd = sprintf( "nohup %s -cfg %s -il %s -ql 60 -e cluster --run",
     $ugpp, $cfg, $region
 );
 

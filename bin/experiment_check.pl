@@ -46,8 +46,7 @@ sub check_request_db {
         my ( $cal, undef ) = split /\s+/, $request->{createDate};
 
         ### from Lab table get name for analysis creation.
-        my $lab_statement =
-          "select firstName, lastName from Lab where idLab = "
+        my $lab_statement = "select firstName, lastName from Lab where idLab = "
           . $request->{idLab} . ";";
         my $name_ref = $dbh->selectall_arrayref($lab_statement);
 
@@ -57,8 +56,7 @@ sub check_request_db {
         my $lab       = "$lastname, $firstname";
 
         ### collect project and folder information
-        my $project_statement =
-          "select name from Project where idProject = "
+        my $project_statement = "select name from Project where idProject = "
           . $request->{idProject} . ";";
         my $proj_ref = $dbh->selectall_arrayref($project_statement);
 

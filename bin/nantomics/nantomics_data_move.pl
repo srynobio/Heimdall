@@ -24,8 +24,10 @@ my $process                = $watch->config->{nantomics_transfer}->{process};
 my $heimdall_chpc_resource = $watch->config->{main}->{resource_chpc_path};
 
 ## Create Filehandles.
-open( my $TXT,    '<',  "$heimdall_chpc_resource/experiment_report.txt" );
-open( my $REPORT, '>>', "$heimdall_chpc_resource/processed_to_GVCF_report.txt");
+open( my $TXT, '<', "$heimdall_chpc_resource/experiment_report.txt" );
+open( my $REPORT, '>>',
+    "$heimdall_chpc_resource/processed_to_GVCF_report.txt"
+);
 my $DATA = IO::Dir->new($process);
 
 ## create lookup of current /Process_Data collection.
@@ -48,7 +50,7 @@ foreach my $proj_file (<$TXT>) {
 }
 
 ## exit if no work
-if ( ! @dirs ) {
+if ( !@dirs ) {
     $watch->info_log("$0: No data which needs processing found.");
     exit(0);
 }

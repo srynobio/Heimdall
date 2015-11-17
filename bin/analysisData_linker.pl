@@ -13,7 +13,8 @@ use Heimdall;
 
 BEGIN {
     ## needed environmental variable
-    $ENV{heimdall_config} = '/uufs/chpc.utah.edu/common/home/u0413537/Heimdall/bin/heimdall.cfg';
+    $ENV{heimdall_config} =
+      '/uufs/chpc.utah.edu/common/home/u0413537/Heimdall/bin/heimdall.cfg';
 }
 
 my $usage = << "EOU";
@@ -48,17 +49,15 @@ GetOptions(
 );
 
 ## make object for record keeping.
-my $watch = Heimdall->new(
-    config_file => $ENV{heimdall_config},
-);
+my $watch = Heimdall->new( config_file => $ENV{heimdall_config}, );
 my $whoami = `whoami`;
 chomp $whoami;
 
 # Get paths from config file.
-my @data_dir          = ( $watch->config->{main}->{lustre_data} );
-my $lustre_path       = $watch->config->{main}->{lustre_path};
-my $project_path      = $watch->config->{main}->{project_path};
-my $resource_path     = $watch->config->{main}->{resource_chpc_path};
+my @data_dir      = ( $watch->config->{main}->{lustre_data} );
+my $lustre_path   = $watch->config->{main}->{lustre_path};
+my $project_path  = $watch->config->{main}->{project_path};
+my $resource_path = $watch->config->{main}->{resource_chpc_path};
 
 ## Default to current.
 $output //= '.';
