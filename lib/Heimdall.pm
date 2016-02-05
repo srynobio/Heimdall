@@ -2,9 +2,7 @@ package Heimdall;
 use strict;
 use warnings;
 use feature 'say';
-use autodie;
 use Moo;
-use DBI;
 use Config::Std;
 use Cwd 'abs_path';
 
@@ -14,7 +12,7 @@ use Cwd 'abs_path';
 
 has VERSION => (
     is      => 'ro',
-    default => sub { 'v0.1' },
+    default => sub { '0.0.1' },
 );
 
 has time => (
@@ -58,26 +56,17 @@ sub _trigger_config_file {
 sub _build_log_dir {
     my $self = shift;
 
-    my $log_dir = $self->config->{log_dir}->{log};
+    my @log_dir = $self->config->{log_dir}->{log};
 
-    foreach my $dir (@{$log_dir}) {
+    foreach my $dir (@log_dir) {
+        #foreach my $dir (@{$log_dir}) {
         chomp $dir;
         if ( -d $dir ) {
-            my $watch = "$dir/watch.log";
+            my $watch = "$dir/heimdall.log";
             $self->log_file($watch);
             $self->log_dir($dir);
         }
     }
-}
-
-##------------------------------------------------------##
-
-sub dbh {
-    my $self = shift;
-
-    my $dbh = DBI->connect( "DBI:mysql:database=gnomex;host=localhost",
-        "srynearson", "iceJihif17&", { 'RaiseError' => 1 } );
-    return $dbh;
 }
 
 ##------------------------------------------------------##
