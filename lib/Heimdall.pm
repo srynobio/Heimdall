@@ -23,13 +23,6 @@ has time => (
     },
 );
 
-has log_dir => (
-    is      => 'rw',
-    builder   => 1,
-);
-
-has log_file => ( is => 'rw' );
-
 has config_file => (
     is      => 'rw',
     trigger => 1,
@@ -45,7 +38,7 @@ sub _trigger_config_file {
     my $self = shift;
 
     my $config = $self->{config_file};
-    $self->error_log("Required heimdall.cfg file not found") if ( ! -r $config );
+    $self->error_log("Required heimdall.cfg file not found") if ( !-r $config );
 
     read_config $config => my %config;
     $self->config( \%config );
@@ -53,30 +46,13 @@ sub _trigger_config_file {
 
 ##------------------------------------------------------##
 
-sub _build_log_dir {
-    my $self = shift;
-
-    my @log_dir = $self->config->{log_dir}->{log};
-
-    foreach my $dir (@log_dir) {
-        #foreach my $dir (@{$log_dir}) {
-        chomp $dir;
-        if ( -d $dir ) {
-            my $watch = "$dir/heimdall.log";
-            $self->log_file($watch);
-            $self->log_dir($dir);
-        }
-    }
-}
-
-##------------------------------------------------------##
-
 sub log_write {
     my ( $self, $message ) = @_;
+    my $log_file = $self->config->{log_file}->{file};
 
-    open( my $FH, '>>', $self->log_file );
-    say $FH $message;
-    close $FH;
+    open( my $OUT, '>>', $log_file );
+    say $OUT $message;
+    close $OUT;
 }
 
 ##------------------------------------------------------##

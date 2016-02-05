@@ -14,7 +14,7 @@ use Rex::Commands::DB {
 };
 
 BEGIN {
-    $ENV{heimdall_config} = '/home/srynearson/Test/heimdall.cfg';
+    $ENV{heimdall_config} = '/home/srynearson/Heimdall/heimdall.cfg';
 }
 
 ## make object for record keeping.
@@ -62,11 +62,9 @@ task "new_experiments", sub {
 
         if ( !$lookup->{$request_id} ) {
 
-            $heimdall->info_log( 
-                "$0 Making analysis for "
+            $heimdall->info_log( "$0 Making analysis for "
                   . @appuser[0]->{lastName}
-                  . " lab request_id: $request_id"
-              );
+                  . " lab request_id: $request_id" );
 
             ## rex db search.
             my @project = db select => {
@@ -97,7 +95,8 @@ task "new_experiments", sub {
             my ( $cal, undef ) = split /\s+/, $req->{createDate};
             my $folder = $cal . '_' . $req->{number} . '_' . $project_name;
 
-            push @new_experiments, [$lab, $project_name, $folder, $req->{number}, $request_id];
+            push @new_experiments,
+              [ $lab, $project_name, $folder, $req->{number}, $request_id ];
         }
     }
 
@@ -109,7 +108,6 @@ task "new_experiments", sub {
         exit(0);
     }
 };
-
 
 ## -------------------------------------------------- ##
 
@@ -164,7 +162,8 @@ sub _analysis_build_update_db {
 
     ## Update UGP db via rex.
     foreach my $update (@ugp_table_update_info) {
-        db insert => "UGP",
+        db
+          insert => "UGP",
           {
             ugp_project_id   => $update->[0],
             AnalysisDataPath => $update->[1],
@@ -213,22 +212,23 @@ task "create_individuals_files",
         }
         close $OUT;
     }
-};
+  };
 
 ## -------------------------------------------------- ##
 
 desc "TODO";
-task "ugp_connect_check", group => "ugp", sub {
+task "ugp_connect_check",
+  group => "ugp",
+  sub {
     my $host = run "hostname";
-    if ( $host ) {
+    if ($host) {
         say "Able to connect to server UGP.";
     }
-};
+  };
 
 ## -------------------------------------------------- ##
 
 1;
-
 
 =pod
 

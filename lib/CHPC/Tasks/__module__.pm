@@ -7,7 +7,7 @@ use lib "$FindBin::Bin/lib";
 use Heimdall;
 
 BEGIN {
-        $ENV{heimdall_config} = '/home/srynearson/Test/heimdall.cfg';
+    $ENV{heimdall_config} = '/home/srynearson/Heimdall/heimdall.cfg';
 }
 
 ## make object for record keeping.
@@ -22,13 +22,14 @@ my $run_projects = $heimdall->config->{main}->{running_projects};
 ## -------------------------------------------------- ##
 
 desc "TODO";
-task "chpc_connect_check", group => "chpc",
+task "chpc_connect_check",
+  group => "chpc",
   sub {
     my $host = run "hostname";
     if ($host) {
         say "Able to connect to server CHPC.";
     }
-};
+  };
 
 ## -------------------------------------------------- ##
 ## Nantomics process directory
@@ -71,12 +72,13 @@ task "nantomics_data_status",
     foreach my $bam (@xfer) {
         chomp $bam;
         say "mv $bam $n_process";
+
         #run "mv $bam $o_process";
         push @moved, $bam;
     }
 
     map { $heimdall->info_log("$0 File $_ moved into Processing.") } @moved;
-};
+  };
 
 ## -------------------------------------------------- ##
 
@@ -95,15 +97,13 @@ task "process_nantomics_to_GVCF",
       command => "mkdir $dir",
       cwd     => $run_projects;
 
-    my $cmd = sprintf( 
-        "%s -cfg %s -il %s -ql 100 -e cluster > foo",
-        $fqf, $n_cfg, $g_regions 
-    );
+    my $cmd = sprintf( "%s -cfg %s -il %s -ql 100 -e cluster > foo",
+        $fqf, $n_cfg, $g_regions );
 
     run "process",
       command => $cmd,
       cwd     => "$run_projects/$dir";
-};
+  };
 
 ## -------------------------------------------------- ##
 ## Other process directory
@@ -146,11 +146,12 @@ task "other_data_status",
     foreach my $bam (@xfer) {
         chomp $bam;
         say "mv $bam $o_process";
+
         #run "mv $bam $o_process";
         push @moved, $bam;
     }
     map { $heimdall->info_log("$0 File $_ moved into Processing.") } @moved;
-};
+  };
 
 ## -------------------------------------------------- ##
 
@@ -169,15 +170,13 @@ task "process_other_to_GVCF",
       command => "mkdir $dir",
       cwd     => $run_projects;
 
-    my $cmd = sprintf( 
-        "%s -cfg %s -il %s -ql 100 -e cluster > foo",
-        $fqf, $o_cfg, $e_regions 
-    );
+    my $cmd = sprintf( "%s -cfg %s -il %s -ql 100 -e cluster > foo",
+        $fqf, $o_cfg, $e_regions );
 
     run "process",
       command => $cmd,
       cwd     => "$run_projects/$dir";
-};
+  };
 
 ## -------------------------------------------------- ##
 
