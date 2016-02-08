@@ -26,7 +26,7 @@ my $task_dir   = $heimdall->config->{main}->{task_dir};
 
 ## -------------------------------------------------- ##
 
-desc "TODO";
+desc "Reads UGP-GNomEx database for newly added Experiments. Will create new Analysis and UGP directory structure if found.";
 task "new_experiments", sub {
 
     ## list of any new experiments
@@ -177,7 +177,7 @@ sub _analysis_build_update_db {
 
 ## -------------------------------------------------- ##
 
-desc "TODO";
+desc "If sample annotations are filled in, an individuals.txt file per-project will be created and added.";
 task "create_individuals_files",
   group => 'ugp',
   sub {
@@ -217,8 +217,8 @@ task "create_individuals_files",
 
 ## -------------------------------------------------- ##
 
-desc "TODO";
-task "new_analysis",
+desc "If user creates their own analysis, a new UGP directory structure will be created for it.";
+task "find_user_created_analysis",
   group => "ugp",
   sub {
     my @ugp = db select => {
@@ -306,18 +306,6 @@ task "new_analysis",
           };
     }
 };
-
-## -------------------------------------------------- ##
-
-desc "TODO";
-task "ugp_connect_check",
-  group => "ugp",
-  sub {
-    my $host = run "hostname";
-    if ($host) {
-        say "Able to connect to server UGP.";
-    }
-  };
 
 ## -------------------------------------------------- ##
 

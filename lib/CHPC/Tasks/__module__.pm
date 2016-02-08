@@ -21,7 +21,7 @@ my $run_projects = $heimdall->config->{main}->{running_projects};
 
 ## -------------------------------------------------- ##
 
-desc "TODO";
+desc "Will test the connection from the UGP server to Kingspeak19.";
 task "chpc_connect_check",
   group => "chpc",
   sub {
@@ -43,7 +43,7 @@ my $n_cfg     = $heimdall->config->{nantomics_transfer}->{cfg};
 
 ## -------------------------------------------------- ##
 
-desc "TODO";
+desc "Checks for the presence of GVCF or BAM files in nantomics Process_Data (exits if present).  Will move all xfer files to Process_Data if empty.";
 task "nantomics_data_status",
   group => 'chpc',
   sub {
@@ -80,7 +80,7 @@ task "nantomics_data_status",
 
 ## -------------------------------------------------- ##
 
-desc "TODO";
+desc "BAM files in nantomics Process_Data directory will run through FQF to GVCF.";
 task "process_nantomics_to_GVCF",
   group => 'chpc',
   sub {
@@ -118,7 +118,7 @@ my $o_cfg     = $heimdall->config->{other_transfer}->{cfg};
 
 ## -------------------------------------------------- ##
 
-desc "TODO";
+desc "Checks for the presence of GVCF or BAM files in other Process_Data (exits if present).  Will move all xfer files to Process_Data if empty.";
 task "other_data_status",
   group => 'chpc',
   sub {
@@ -154,7 +154,7 @@ task "other_data_status",
 
 ## -------------------------------------------------- ##
 
-desc "TODO";
+desc "BAM files in other Process_Data directory will run through FQF to GVCF.";
 task "process_other_to_GVCF",
   group => 'chpc',
   sub {

@@ -7,5 +7,10 @@ require UGP::Tasks;
 require CHPC::Tasks;
 
 
+BEGIN {
+    if ( $ENV{HOSTNAME} ne 'ugp.chpc.utah.edu' ) {
+        die "Heimdall designed to run on ugp.chpc.utah.edu";
+    }
+}
 
 1;
