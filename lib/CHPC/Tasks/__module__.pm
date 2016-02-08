@@ -61,9 +61,7 @@ task "nantomics_data_status",
 
     ## exit if file are present.
     if ($file_present) {
-        $heimdall->error_log(
-            "$0: Nantomics process directory contains files, or directories. Exiting"
-        );
+        Rex::Logger::info("Nantomics Process_Data directory not empty.", "error");
         exit(0);
     }
 
@@ -77,8 +75,8 @@ task "nantomics_data_status",
         push @moved, $bam;
     }
 
-    map { $heimdall->info_log("$0 File $_ moved into Processing.") } @moved;
-  };
+    map { Rex::Logger::info("File $_ moved into Processing.") } @moved;
+};
 
 ## -------------------------------------------------- ##
 
@@ -97,13 +95,16 @@ task "process_nantomics_to_GVCF",
       command => "mkdir $dir",
       cwd     => $run_projects;
 
+    ## source user bashrc
+    run "source ~/.bashrc";
+
     my $cmd = sprintf( "%s -cfg %s -il %s -ql 100 -e cluster > foo",
         $fqf, $n_cfg, $g_regions );
 
     run "process",
       command => $cmd,
       cwd     => "$run_projects/$dir";
-  };
+};
 
 ## -------------------------------------------------- ##
 ## Other process directory
@@ -135,9 +136,7 @@ task "other_data_status",
 
     ## exit if file are present.
     if ($file_present) {
-        $heimdall->error_log(
-            "$0: Other process directory contains files, or directories. Exiting"
-        );
+        Rex::Logger::info("Other process directory contains files, or directories. Exiting", "error");
         exit(0);
     }
 
@@ -150,7 +149,7 @@ task "other_data_status",
         #run "mv $bam $o_process";
         push @moved, $bam;
     }
-    map { $heimdall->info_log("$0 File $_ moved into Processing.") } @moved;
+    map { Rex::Logger::info("File $_ moved into Processing.") } @moved;
   };
 
 ## -------------------------------------------------- ##
@@ -170,12 +169,17 @@ task "process_other_to_GVCF",
       command => "mkdir $dir",
       cwd     => $run_projects;
 
+    ## source user bashrc
+    run "source ~/.bashrc";
+
     my $cmd = sprintf( "%s -cfg %s -il %s -ql 100 -e cluster > foo",
         $fqf, $o_cfg, $e_regions );
 
-    run "process",
+    my $exec = run "process",
       command => $cmd,
       cwd     => "$run_projects/$dir";
+
+    say $exec; 
   };
 
 ## -------------------------------------------------- ##

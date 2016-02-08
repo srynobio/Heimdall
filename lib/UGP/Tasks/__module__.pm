@@ -46,6 +46,7 @@ task "new_experiments", sub {
     ## create lookup of past analysis.
     my $lookup;
     foreach my $project (@ugp) {
+        next if ( $project->{ugp_project_id} eq 'NULL' );
         my $id = $project->{ugp_project_id};
         $lookup->{$id}++;
     }
@@ -76,10 +77,10 @@ task "new_experiments", sub {
 
             ## rex db search
             my @lab = db select => {
-                fields1 => 'firstName',
-                fields1 => 'lastName',
+                fields1 => 'firstname',
+                fields1 => 'lastname',
                 from    => 'Lab',
-                where   => "idLab=@project[0]->{idLab}",
+                where   => "idlab=@project[0]->{idlab}",
             };
 
             ## the lab
@@ -104,7 +105,7 @@ task "new_experiments", sub {
         _analysis_build_update_db(@new_experiments);
     }
     else {
-        $heimdall->info_log("$0 No new experiments found.");
+        Rex::Logger::info("$0 No new experiments found.");
         exit(0);
     }
 };
@@ -142,6 +143,7 @@ sub _analysis_build_update_db {
         my $new_analysis_id       = $ref->{idAnalysis};
 
         my $ugp_path = "$analysis_project_path/$lab->[2]/UGP";
+        $ugp_path =~ s|^/UGP||;
 
         my @dirs = (
             "$ugp_path",                   "$ugp_path/Data",
@@ -154,7 +156,7 @@ sub _analysis_build_update_db {
         );
 
         map { make_path($_) } @dirs;
-        $heimdall->info_log("$0 Making UGP directory structure for $lab->[2]");
+        Rex::Logger::info("$0 Making UGP directory structure for $lab->[2]");
 
         push @ugp_table_update_info,
           [ $lab->[4], $ugp_path, $lab->[3], $new_analysis_id ];
@@ -204,7 +206,6 @@ task "create_individuals_files",
         $requests{$id} =~ s|/UGP$||;
         my $indiv_file = $requests{$id} . '/individuals.txt';
 
-        say $indiv_file;
         open( my $OUT, '>', $indiv_file );
 
         foreach my $individual (@sample) {
@@ -213,6 +214,98 @@ task "create_individuals_files",
         close $OUT;
     }
   };
+
+## -------------------------------------------------- ##
+
+desc "TODO";
+task "new_analysis",
+  group => "ugp",
+  sub {
+    my @ugp = db select => {
+        fields => "AnalysisID",
+        from   => "UGP",
+    };
+
+    my %ugp_lookup;
+    foreach my $known (@ugp) {
+        chomp $known;
+        next if ( $known eq 'NULL' );
+        my $analysis = "A" . $known->{AnalysisID};
+        $ugp_lookup{$analysis}++;
+    }
+
+    ## get list of analysis created.
+    my @analysis = db select => {
+        fields => "*",
+        from   => "Analysis"
+    };
+
+    my @analysis_update;
+    foreach my $study (@analysis) {
+        if ( !$ugp_lookup{ $study->{number} } ) {
+
+            ## will return 1..* elements
+            my @analysisFile = db select => {
+                fields => "baseFilePath, createDate",
+                from   => "AnalysisFile",
+                where  => "idAnalysis=$study->{idAnalysis}",
+            };
+
+            ## unless undef
+            if ( !@analysisFile ) {
+                Rex::Logger::info(
+                    "Analysis $study->{number} created with no known data files",
+                    "warn"
+                );
+                next;
+            }
+
+            ## some createDate are not created in gnomex!?
+            if ( !@analysisFile[0]->{createDate} ) {
+                ( my $createDate, undef ) = split /\s+/,
+                  @analysis[0]->{createDate};
+                @analysisFile[0]->{createDate} = $createDate;
+            }
+
+            ## name clean up (same for experiment create).
+            my $filename =
+              @analysisFile[0]->{createDate} . "_" . $study->{name};
+            $filename =~ s/[^A-Za-z0-9]/ /g;
+            $filename =~ s/\s+/_/g;
+            $filename =~ s/_$//g;
+
+            @analysisFile[0]->{baseFilePath} =~ s|/UGP||g;
+            my $ugp_path =
+              @analysisFile[0]->{baseFilePath} . "/" . $filename . "/" . "UGP";
+
+            my @dirs = (
+                "$ugp_path",                   "$ugp_path/Data",
+                "$ugp_path/Data/PolishedBams", "$ugp_path/Data/Primary_Data",
+                "$ugp_path/Analysis",          "$ugp_path/Reports/flagstat",
+                "$ugp_path/Reports/stats",     "$ugp_path/Reports/fastqc",
+                "$ugp_path/Reports/BAMQC",     "$ugp_path/Reports/VCFQC",
+                "$ugp_path/VCF/GVCFs",         "$ugp_path/VCF/Complete",
+                "$ugp_path/VCF/WHAM",
+            );
+
+            map { make_path($_) } @dirs;
+            Rex::Logger::info(
+                "$0 Making UGP directory structure for analysis A$study->{idAnalysis}"
+            );
+            push @analysis_update, [ $ugp_path, $study->{idAnalysis} ];
+        }
+    }
+
+    ## Update UGP db via rex.
+    foreach my $update (@analysis_update) {
+        db
+          insert => "UGP",
+          {
+            AnalysisDataPath => $update->[0],
+            AnalysisID       => $update->[1],
+          };
+    }
+};
 
 ## -------------------------------------------------- ##
 
