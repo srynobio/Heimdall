@@ -6,11 +6,13 @@ logging to_file => "Heimdall.run.log";
 require UGP::Tasks;
 require CHPC::Tasks;
 
-
+=cut
 BEGIN {
     if ( $ENV{HOSTNAME} ne 'ugp.chpc.utah.edu' ) {
         die "Heimdall designed to run on ugp.chpc.utah.edu";
     }
+=cut
+
 }
 
 1;

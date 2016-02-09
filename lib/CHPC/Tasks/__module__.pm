@@ -18,6 +18,7 @@ my $fqf          = $heimdall->config->{pipeline}->{FQF};
 my $g_regions    = $heimdall->config->{pipeline}->{genomic_regions};
 my $e_regions    = $heimdall->config->{pipeline}->{exon_regions};
 my $run_projects = $heimdall->config->{main}->{running_projects};
+my $lustre_analysis = $heimdall->config->{repository}->{lustre_analysis_repo};
 
 ## -------------------------------------------------- ##
 
@@ -105,6 +106,82 @@ task "process_nantomics_to_GVCF",
       command => $cmd,
       cwd     => "$run_projects/$dir";
 };
+
+## -------------------------------------------------- ##
+
+desc "TODO";
+task "nantomics_transfer_processed_data", group => 'chpc',
+sub {
+
+
+        my $indi_find = "find $lustre_analysis -name \"individuals.txt\"";
+        my @indi_files = run $indi_find;
+   
+
+        foreach my $file (@indi_files) {
+            chomp $file;
+
+            say $file;
+
+            my $FH;
+            eval { 
+                $FH = file_read($file);
+            };
+            Rex::Logger::info("Error occured reading file $file.", "warn") if ($@);
+
+            for my $id ($FH->read_all) {
+                say $id;
+            }
+            #my $content = $FH->read_all;
+            #say "start: $content";
+            $FH->close;
+        }
+
+
+
+
+=cut
+    my @year_dir =  list_files($lustre_analysis);    
+
+    my @years;
+    foreach my $dir ( @year_dir ) {
+        my @repo_contents = list_files("$lustre_analysis/$dir");
+
+        foreach my $analysis_dir (@repo_contents) {
+            my 
+            say $analysis_dir;
+        }
+
+        #use Data::Dumper;
+        #print Dumper 'shawn', $dir, @test;
+    }
+
+        next if ( $dir !~ /20*/ );
+        push @years, $dir;
+    }
+
+    my @path_years = map { "$lustre_analysis/$_" } @years;
+
+    foreach my $i ( @path_years ) {
+        my @test = list_files($i);
+    
+        use Data::Dumper;
+        print Dumper @test;
+    }
+=cut
+
+
+
+#my $lustre_analysis = $heimdall->config->{repository}->{lustre_analysis_repo};
+#my $n_process = $heimdall->config->{nantomics_transfer}->{process};
+
+
+
+
+
+
+};
+
 
 ## -------------------------------------------------- ##
 ## Other process directory
