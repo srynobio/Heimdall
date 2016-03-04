@@ -26,8 +26,89 @@ my $task_dir   = $heimdall->config->{main}->{task_dir};
 
 ## -------------------------------------------------- ##
 
+desc "Reads UGP-GNomEx database for newly added Experiments. Reports if found, but no other actons.";
+task "report_new_experiments", sub {
+
+    ## rex db searches.
+    my @ugp = db select => {
+        fields => "*",
+        from   => "UGP",
+    };
+
+    my @request = db select => {
+        fields => "*",
+        from   => "Request",
+    };
+
+    ## create lookup of past analysis.
+    my $lookup;
+    foreach my $project (@ugp) {
+        next if ( $project->{ugp_project_id} eq 'NULL' );
+        my $id = $project->{ugp_project_id};
+        $lookup->{$id}++;
+    }
+
+    my $found_count;
+    foreach my $req (@request) {
+        my $request_id = $req->{idRequest} . ':' . $req->{number};
+
+        ## rex search.
+        my @appuser = db select => {
+            fields1 => 'lastName',
+            from    => 'AppUser',
+            where   => "idAppUser=$req->{idAppUser}",
+        };
+
+        if ( !$lookup->{$request_id} ) {
+
+            $heimdall->info_log( "$0 Making analysis for "
+                  . @appuser[0]->{lastName}
+                  . " lab request_id: $request_id" );
+
+            ## rex db search.
+            my @project = db select => {
+                fields1 => 'name',
+                field2  => 'idLab',
+                from    => 'Project',
+                where   => "idProject=$req->{idProject}",
+            };
+
+            ## rex db search
+            my @lab = db select => {
+                fields1 => 'firstname',
+                fields1 => 'lastname',
+                from    => 'Lab',
+                where   => "idlab=@project[0]->{idlab}",
+            };
+
+            ## the lab
+            my $lab = @lab[0]->{lastName} . ', ' . @lab[0]->{firstName};
+
+            ## the project
+            my $project_name = @project[0]->{name};
+            $project_name =~ s/[^A-Za-z0-9]/ /g;
+            $project_name =~ s/\s+/_/g;
+            $project_name =~ s/_$//g;
+
+            ## the folder name.
+            my ( $cal, undef ) = split /\s+/, $req->{createDate};
+            my $folder = $cal . '_' . $req->{number} . '_' . $project_name;
+
+            say "$lab, $project_name, $folder, $req->{number}, $request_id ";
+            Rex::Logger::info("Experiments reported on.");
+            $found_count++;
+        }
+    }
+    if ( !$found_count ) {
+        say "No new experiments to report.";
+        Rex::Logger::info("No new experiments found.");
+    }
+};
+
+## -------------------------------------------------- ##
+
 desc "Reads UGP-GNomEx database for newly added Experiments. Will create new Analysis and UGP directory structure if found.";
-task "new_experiments", sub {
+task "complete_new_experiments", sub {
 
     ## list of any new experiments
     my @new_experiments;
@@ -109,71 +190,6 @@ task "new_experiments", sub {
         exit(0);
     }
 };
-
-## -------------------------------------------------- ##
-
-sub _analysis_build_update_db {
-    my @lab_meta = @_;
-
-    my @ugp_table_update_info;
-    foreach my $lab (@lab_meta) {
-        my $cmd = sprintf(
-            "java -classpath %s hci.gnomex.httpclient.CreateAnalysisMain "
-              . "-properties %s -server ugp.chpc.utah.edu "
-              . "-name \"%s\" -lab \"%s\" -folderName \"%s\" -organism \"Human\" "
-              . "-genomeBuild human_g1k_v37 -analysisType \"UGP Analysis\" -analysisProtocal \"UGP\" "
-              . "-experiment %s",
-            $gnomex_jar, $properties, $lab->[1],
-            $lab->[0],   $lab->[2],   $lab->[3]
-        );
-
-        ##run and parse result.
-        my $result = `$cmd`;
-
-        ## check system return for errors.
-        if ($?) {
-            $heimdall->error_log(
-                "CreateAnalysisMain for $lab->[2] could not be created. Message: $?"
-            );
-        }
-
-        ## parse the java return
-        my $ref                   = XMLin($result);
-        my $analysis_project_path = $ref->{filePath};
-        my $new_analysis_id       = $ref->{idAnalysis};
-
-        my $ugp_path = "$analysis_project_path/$lab->[2]/UGP";
-        $ugp_path =~ s|^/UGP||;
-
-        my @dirs = (
-            "$ugp_path",                   "$ugp_path/Data",
-            "$ugp_path/Data/PolishedBams", "$ugp_path/Data/Primary_Data",
-            "$ugp_path/Analysis",          "$ugp_path/Reports/flagstat",
-            "$ugp_path/Reports/stats",     "$ugp_path/Reports/fastqc",
-            "$ugp_path/Reports/BAMQC",     "$ugp_path/Reports/VCFQC",
-            "$ugp_path/VCF/GVCFs",         "$ugp_path/VCF/Complete",
-            "$ugp_path/VCF/WHAM",
-        );
-
-        map { make_path($_) } @dirs;
-        Rex::Logger::info("$0 Making UGP directory structure for $lab->[2]");
-
-        push @ugp_table_update_info,
-          [ $lab->[4], $ugp_path, $lab->[3], $new_analysis_id ];
-    }
-
-    ## Update UGP db via rex.
-    foreach my $update (@ugp_table_update_info) {
-        db
-          insert => "UGP",
-          {
-            ugp_project_id   => $update->[0],
-            AnalysisDataPath => $update->[1],
-            AnalysisID       => $update->[2],
-            project          => $update->[3],
-          };
-    }
-}
 
 ## -------------------------------------------------- ##
 
@@ -306,6 +322,73 @@ task "find_user_created_analysis",
           };
     }
 };
+
+## -------------------------------------------------- ##
+## Task methods.
+## -------------------------------------------------- ##
+
+sub _analysis_build_update_db {
+    my @lab_meta = @_;
+
+    my @ugp_table_update_info;
+    foreach my $lab (@lab_meta) {
+        my $cmd = sprintf(
+            "java -classpath %s hci.gnomex.httpclient.CreateAnalysisMain "
+              . "-properties %s -server ugp.chpc.utah.edu "
+              . "-name \"%s\" -lab \"%s\" -folderName \"%s\" -organism \"Human\" "
+              . "-genomeBuild human_g1k_v37 -analysisType \"UGP Analysis\" -analysisProtocal \"UGP\" "
+              . "-experiment %s",
+            $gnomex_jar, $properties, $lab->[1],
+            $lab->[0],   $lab->[2],   $lab->[3]
+        );
+
+        ##run and parse result.
+        my $result = `$cmd`;
+
+        ## check system return for errors.
+        if ($?) {
+            $heimdall->error_log(
+                "CreateAnalysisMain for $lab->[2] could not be created. Message: $?"
+            );
+        }
+
+        ## parse the java return
+        my $ref                   = XMLin($result);
+        my $analysis_project_path = $ref->{filePath};
+        my $new_analysis_id       = $ref->{idAnalysis};
+
+        my $ugp_path = "$analysis_project_path/$lab->[2]/UGP";
+        $ugp_path =~ s|^/UGP||;
+
+        my @dirs = (
+            "$ugp_path",                   "$ugp_path/Data",
+            "$ugp_path/Data/PolishedBams", "$ugp_path/Data/Primary_Data",
+            "$ugp_path/Analysis",          "$ugp_path/Reports/flagstat",
+            "$ugp_path/Reports/stats",     "$ugp_path/Reports/fastqc",
+            "$ugp_path/Reports/BAMQC",     "$ugp_path/Reports/VCFQC",
+            "$ugp_path/VCF/GVCFs",         "$ugp_path/VCF/Complete",
+            "$ugp_path/VCF/WHAM",
+        );
+
+        map { make_path($_) } @dirs;
+        Rex::Logger::info("$0 Making UGP directory structure for $lab->[2]");
+
+        push @ugp_table_update_info,
+          [ $lab->[4], $ugp_path, $lab->[3], $new_analysis_id ];
+    }
+
+    ## Update UGP db via rex.
+    foreach my $update (@ugp_table_update_info) {
+        db
+          insert => "UGP",
+          {
+            ugp_project_id   => $update->[0],
+            AnalysisDataPath => $update->[1],
+            AnalysisID       => $update->[2],
+            project          => $update->[3],
+          };
+    }
+}
 
 ## -------------------------------------------------- ##
 

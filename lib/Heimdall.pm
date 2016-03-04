@@ -5,6 +5,7 @@ use feature 'say';
 use Moo;
 use Config::Std;
 use Cwd 'abs_path';
+use Email::Stuffer;
 
 ##------------------------------------------------------##
 ##--- ATTS ---------------------------------------------##
@@ -75,6 +76,27 @@ sub error_log {
 sub update_log {
     my ( $self, $message ) = @_;
     $self->log_write( "[" . $self->time . "]" . " UPDATE - $message" );
+}
+
+##------------------------------------------------------##
+
+sub ucgd_members_mail {
+    my ( $self, $message ) = @_;
+
+    my $body = <<"EOM";
+
+UCGD status message sent to all UCGD members.
+
+@{$message}
+
+EOM
+
+my $stuffer = Email::Stuffer->new();
+$stuffer->from('shawn.rynearson@gmail.com')
+    ->subject("UCGD members message")
+    ->to('shawn.rynearson@gmail.com')
+    ->text_body($body)
+    ->send;
 }
 
 ##------------------------------------------------------##

@@ -10,16 +10,26 @@ BEGIN {
     $ENV{heimdall_config} = '/home/srynearson/Heimdall/heimdall.cfg';
 }
 
+use Rex::Commands::DB {
+    dsn      => "DBI:mysql:database=gnomex;host=localhost",
+    user     => "srynearson",
+    password => "iceJihif17&",
+};
+
 ## make object for record keeping.
 my $heimdall = Heimdall->new( config_file => $ENV{heimdall_config} );
 
 ## Global calls
-my $fqf          = $heimdall->config->{pipeline}->{FQF};
-my $g_regions    = $heimdall->config->{pipeline}->{genomic_regions};
-my $e_regions    = $heimdall->config->{pipeline}->{exon_regions};
-my $run_projects = $heimdall->config->{main}->{running_projects};
+my $fqf             = $heimdall->config->{pipeline}->{FQF};
+my $g_regions       = $heimdall->config->{pipeline}->{genomic_regions};
+my $e_regions       = $heimdall->config->{pipeline}->{exon_regions};
+my $run_projects    = $heimdall->config->{main}->{running_projects};
 my $lustre_analysis = $heimdall->config->{repository}->{lustre_analysis_repo};
+my $users_path      = $heimdall->config->{user_data_path}->{chpc};
+my $report_dir      = $heimdall->config->{main}->{reports_dir};
 
+## -------------------------------------------------- ##
+## General CHPC tasks
 ## -------------------------------------------------- ##
 
 desc "Will test the connection from the UGP server to Kingspeak19.";
@@ -30,7 +40,44 @@ task "chpc_connect_check",
     if ($host) {
         say "Able to connect to server CHPC.";
     }
-  };
+};
+
+## -------------------------------------------------- ##
+
+desc "Check usage of /scratch/ucgd/lustre for UCGD disk space offenders.";
+task "check_user_usage",
+  group => "chpc",
+  sub {
+    ## get collection of current directories
+    my @user_space = run "ls $users_path";
+
+    my @messages;
+    foreach my $dir (@user_space) {
+        chomp $dir;
+        next if ( $dir !~ /^u\d{4,}/ );
+
+        my $full_path = "$users_path/$dir";
+
+        ## get username
+        my $user = run "finger -s $dir";
+        my ( $header, $info ) = split /\n/, $user;
+        my ( $uid, $username, undef ) = split /\s{2,}/, $info;
+
+        ## get user usage.
+        my $usage = run "du -sh $full_path";
+        next if ( !$username );
+        my ($total, $path) =~ split/\s+/, $usage;
+
+        ## Set up messages.        
+        Rex::Logger::info("User $username\tUsage $usage");
+        my $statement = sprintf(
+            "User: %s\t Usage: %s\t Total: %s\n",
+            $username, $usage, $total
+        );
+        push @messages, $statement;
+    }
+    $heimdall->ucgd_members_mail(\@messages);
+};
 
 ## -------------------------------------------------- ##
 ## Nantomics process directory
@@ -99,8 +146,12 @@ task "process_nantomics_to_GVCF",
     ## source user bashrc
     run "source ~/.bashrc";
 
-    my $cmd = sprintf( "%s -cfg %s -il %s -ql 100 -e cluster > foo",
-        $fqf, $n_cfg, $g_regions );
+    my $cmd = sprintf(
+          "nohup %s -cfg %s -il %s -ql 100 -e cluster --run",
+        #"nohup %s -cfg %s -il %s -ql 100 -e cluster > foo",
+        $fqf, $n_cfg, $g_regions
+    );
+    Rex::Logger::info( "Process data. Running command $cmd", "warn" );
 
     run "process",
       command => $cmd,
@@ -113,6 +164,14 @@ desc "TODO";
 task "nantomics_transfer_processed_data", group => 'chpc',
 sub {
 
+    my @analysisDataPath = db select => {
+        fields => 'AnalysisDataPath',
+        from   => 'UGP',
+    };
+
+    map { say $_->{AnalysisDataPath} } @analysisDataPath;
+
+=cut
 
         my $indi_find = "find $lustre_analysis -name \"individuals.txt\"";
         my @indi_files = run $indi_find;
@@ -140,7 +199,6 @@ sub {
 
 
 
-=cut
     my @year_dir =  list_files($lustre_analysis);    
 
     my @years;
