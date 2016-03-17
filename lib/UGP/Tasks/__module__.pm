@@ -78,7 +78,7 @@ task "report_new_experiments", sub {
                 fields1 => 'firstname',
                 fields1 => 'lastname',
                 from    => 'Lab',
-                where   => "idlab=@project[0]->{idlab}",
+                where   => "idlab=@project[0]->{idLab}",
             };
 
             ## the lab
@@ -161,7 +161,7 @@ task "complete_new_experiments", sub {
                 fields1 => 'firstname',
                 fields1 => 'lastname',
                 from    => 'Lab',
-                where   => "idlab=@project[0]->{idlab}",
+                where   => "idlab=@project[0]->{idLab}",
             };
 
             ## the lab
@@ -208,6 +208,7 @@ task "create_individuals_files",
     foreach my $return (@ugp) {
         next if ( $return->{AnalysisDataPath} eq 'NULL' );
         my ( $idRequest, undef ) = split /:/, $return->{ugp_project_id};
+        next if ( ! $idRequest );
         $requests{$idRequest} = $return->{AnalysisDataPath};
     }
 
@@ -221,6 +222,7 @@ task "create_individuals_files",
         ## make the individuals.txt path.
         $requests{$id} =~ s|/UGP$||;
         my $indiv_file = $requests{$id} . '/individuals.txt';
+        Rex::Logger::info("Creating individuals.txt for project $indiv_file.");
 
         open( my $OUT, '>', $indiv_file );
 
@@ -229,7 +231,7 @@ task "create_individuals_files",
         }
         close $OUT;
     }
-  };
+};
 
 ## -------------------------------------------------- ##
 
@@ -278,8 +280,7 @@ task "find_user_created_analysis",
 
             ## some createDate are not created in gnomex!?
             if ( !@analysisFile[0]->{createDate} ) {
-                ( my $createDate, undef ) = split /\s+/,
-                  @analysis[0]->{createDate};
+                ( my $createDate, undef ) = split /\s+/, @analysis[0]->{createDate};
                 @analysisFile[0]->{createDate} = $createDate;
             }
 

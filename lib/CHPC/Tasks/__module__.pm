@@ -122,7 +122,6 @@ task "nantomics_data_status",
         #run "mv $bam $o_process";
         push @moved, $bam;
     }
-
     map { Rex::Logger::info("File $_ moved into Processing.") } @moved;
 };
 
