@@ -88,6 +88,7 @@ my $n_process = $heimdall->config->{nantomics_transfer}->{process};
 my $n_path    = $heimdall->config->{nantomics_transfer}->{path};
 my $n_xfer    = $heimdall->config->{nantomics_transfer}->{xfer};
 my $n_cfg     = $heimdall->config->{nantomics_transfer}->{cfg};
+my $n_script  = $heimdall->config->{nantomics_transfer}->{scripts};
 
 ## -------------------------------------------------- ##
 
@@ -190,146 +191,11 @@ desc "TODO";
 task "nantomics_transfer_processed_data", group => 'chpc',
 sub {
 
-    my $n_process = $heimdall->config->{nantomics_transfer}->{process};
-my $n_path    = $heimdall->config->{nantomics_transfer}->{path};
-my $n_xfer    = $heimdall->config->{nantomics_transfer}->{xfer};
-my $n_cfg     = $heimdall->config->{nantomics_transfer}->{cfg};
-
-my $analysis_dir = $heimdall->config->{repository}->{lustre_analysis_repo};
-
-# from config
-my $analysis = '/scratch/ucgd/lustre/ugpuser/Repository/AnalysisData';
-my $process  = '/scratch/ucgd/lustre/nantomics-transfer/Process_Data';
-
-## Global collection
-my $project_ids;
-my $processed;
-
-find (\&id_find, $analysis_dir);
-find (\&get_processed, $process);
-
-## process data check
-if ( ! keys %{$processed} ) {
-    say "No data found to transfer";
-        exit(0);
-        }
-
-        foreach my $proj (keys %{$project_ids}) {
-            foreach my $indiv (@{$project_ids->{$proj}->{ids}}) {
-
-                    my @found = grep { $_ =~ /^$indiv.*/ } keys %{$processed};
-                            next if ( ! @found );
-
-                                    move_to_project( \@found, $project_ids->{$proj}->{path});
-                                            delete $processed->{$found[0]};
-                                                }
-                                                }
-
-                                                map { say "file with no home: $_" } keys %$processed;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
-    my @analysisDataPath = db select => {
-        fields => 'AnalysisDataPath',
-        from   => 'UGP',
-    };
-
-    map { say $_->{AnalysisDataPath} } @analysisDataPath;
-
-=cut
-
-        my $indi_find = "find $lustre_analysis -name \"individuals.txt\"";
-        my @indi_files = run $indi_find;
-   
-
-        foreach my $file (@indi_files) {
-            chomp $file;
-
-            say $file;
-
-            my $FH;
-            eval { 
-                $FH = file_read($file);
-            };
-            Rex::Logger::info("Error occured reading file $file.", "warn") if ($@);
-
-            for my $id ($FH->read_all) {
-                say $id;
-            }
-            #my $content = $FH->read_all;
-            #say "start: $content";
-            $FH->close;
-        }
-
-
-
-
-    my @year_dir =  list_files($lustre_analysis);    
-
-    my @years;
-    foreach my $dir ( @year_dir ) {
-        my @repo_contents = list_files("$lustre_analysis/$dir");
-
-        foreach my $analysis_dir (@repo_contents) {
-            my 
-            say $analysis_dir;
-        }
-
-        #use Data::Dumper;
-        #print Dumper 'shawn', $dir, @test;
-    }
-
-        next if ( $dir !~ /20*/ );
-        push @years, $dir;
-    }
-
-    my @path_years = map { "$lustre_analysis/$_" } @years;
-
-    foreach my $i ( @path_years ) {
-        my @test = list_files($i);
-    
-        use Data::Dumper;
-        print Dumper @test;
-    }
-=cut
-
-
-
-#my $lustre_analysis = $heimdall->config->{repository}->{lustre_analysis_repo};
-#my $n_process = $heimdall->config->{nantomics_transfer}->{process};
-
-
-
-
-
-
+    ## make directory
+    run "indiv_find",
+      command => "perl nantomics_individuals.find.pl",
+      cwd     => $n_script;
 };
-
 
 ## -------------------------------------------------- ##
 ## Other process directory

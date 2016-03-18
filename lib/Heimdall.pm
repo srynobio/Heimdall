@@ -5,7 +5,7 @@ use feature 'say';
 use Moo;
 use Config::Std;
 use Cwd 'abs_path';
-use Email::Stuffer;
+#use Email::Stuffer;
 
 ##------------------------------------------------------##
 ##--- ATTS ---------------------------------------------##
@@ -83,6 +83,7 @@ sub update_log {
 sub ucgd_members_mail {
     my ( $self, $message ) = @_;
 
+=cut
     my $body = <<"EOM";
 
 UCGD status message sent to all UCGD members.
@@ -97,6 +98,7 @@ $stuffer->from('shawn.rynearson@gmail.com')
     ->to('shawn.rynearson@gmail.com')
     ->text_body($body)
     ->send;
+=cut
 }
 
 ##------------------------------------------------------##
