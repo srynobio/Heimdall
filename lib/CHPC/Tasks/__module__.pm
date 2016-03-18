@@ -114,6 +114,11 @@ task "nantomics_data_status",
     }
 
     my @xfer = run "find $n_xfer -name \"*bam\"";
+    if ( ! @xfer ) {
+        Rex::Logger::info("No xfer files to transfer", "warn");
+        exit(0);
+    }
+
     my @moved;
     foreach my $bam (@xfer) {
         chomp $bam;
@@ -132,6 +137,28 @@ task "process_nantomics_to_GVCF",
   group => 'chpc',
   sub {
 
+    ## checking for bams 
+    my @pd = run "ls $n_process";
+
+    my $file_present;
+    foreach my $file (@pd) {
+        chomp $file;
+        ## check that gvcf files are not found.
+        if ( $file =~ /g.vcf/ ) {
+            Rex::Logger::info( "GVCF file[s] found, process step error", "error" );
+            exit(0);
+        }
+        if ( $file =~ /bam$/ ) {
+            $file_present++;
+        }
+    }
+
+    ## exit if file are present.
+    if (! $file_present) {
+        Rex::Logger::info("No data to process", "warn");
+        exit(0);
+    }
+
     ## make directory & run there.
     my $date = localtime;
     $date =~ s/\s+/_/g;
@@ -146,8 +173,8 @@ task "process_nantomics_to_GVCF",
     run "source ~/.bashrc";
 
     my $cmd = sprintf(
-          "nohup %s -cfg %s -il %s -ql 100 -e cluster --run",
-        #"nohup %s -cfg %s -il %s -ql 100 -e cluster > foo",
+        #"nohup %s -cfg %s -il %s -ql 100 -e cluster --run",
+        "nohup %s -cfg %s -il %s -ql 100 -e cluster > foo",
         $fqf, $n_cfg, $g_regions
     );
     Rex::Logger::info( "Process data. Running command $cmd", "warn" );
@@ -163,6 +190,70 @@ desc "TODO";
 task "nantomics_transfer_processed_data", group => 'chpc',
 sub {
 
+    my $n_process = $heimdall->config->{nantomics_transfer}->{process};
+my $n_path    = $heimdall->config->{nantomics_transfer}->{path};
+my $n_xfer    = $heimdall->config->{nantomics_transfer}->{xfer};
+my $n_cfg     = $heimdall->config->{nantomics_transfer}->{cfg};
+
+my $analysis_dir = $heimdall->config->{repository}->{lustre_analysis_repo};
+
+# from config
+my $analysis = '/scratch/ucgd/lustre/ugpuser/Repository/AnalysisData';
+my $process  = '/scratch/ucgd/lustre/nantomics-transfer/Process_Data';
+
+## Global collection
+my $project_ids;
+my $processed;
+
+find (\&id_find, $analysis_dir);
+find (\&get_processed, $process);
+
+## process data check
+if ( ! keys %{$processed} ) {
+    say "No data found to transfer";
+        exit(0);
+        }
+
+        foreach my $proj (keys %{$project_ids}) {
+            foreach my $indiv (@{$project_ids->{$proj}->{ids}}) {
+
+                    my @found = grep { $_ =~ /^$indiv.*/ } keys %{$processed};
+                            next if ( ! @found );
+
+                                    move_to_project( \@found, $project_ids->{$proj}->{path});
+                                            delete $processed->{$found[0]};
+                                                }
+                                                }
+
+                                                map { say "file with no home: $_" } keys %$processed;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
     my @analysisDataPath = db select => {
         fields => 'AnalysisDataPath',
         from   => 'UGP',
@@ -321,35 +412,3 @@ task "process_other_to_GVCF",
 ## -------------------------------------------------- ##
 
 1;
-
-=pod
-
-=head1 NAME
-
-$::module_name - {{ SHORT DESCRIPTION }}
-
-=head1 DESCRIPTION
-
-{{ LONG DESCRIPTION }}
-
-=head1 USAGE
-
-{{ USAGE DESCRIPTION }}
-
- include qw/CHPC::Tasks/;
-
- task yourtask => sub {
-    CHPC::Tasks::example();
- };
-
-=head1 TASKS
-
-=over 4
-
-=item example
-
-This is an example Task. This task just output's the uptime of the system.
-
-=back
-
-=cut
