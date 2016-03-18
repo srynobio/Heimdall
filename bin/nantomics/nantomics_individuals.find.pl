@@ -9,9 +9,12 @@ use FindBin;
 use lib "$FindBin::Bin/../../lib";
 use Heimdall;
 
+use Rex -feature => ['1.3'];
+logging to_file => '/uufs/chpc.utah.edu/common/home/u0413537/Heimdall/Heimdall.run.log';
+
 BEGIN {
-    $ENV{heimdall_config} = '/uufs/chpc.utah.edu/common/home/u0413537/Heimdall';
-    if ( $ENV{HOSTNAME} =~ /kingspeak/ ) {
+    $ENV{heimdall_config} = '/uufs/chpc.utah.edu/common/home/u0413537/Heimdall/heimdall.cfg';
+    if ( ! $ENV{HOSTNAME} =~ /kingspeak/ ) {
         die "Script must be ran on kingspeak (CHPC) server.";
     }
 }
@@ -22,17 +25,19 @@ my $heimdall = Heimdall->new( config_file => $ENV{heimdall_config} );
 ## from config
 my $analysis_dir = $heimdall->config->{repository}->{lustre_analysis_repo};
 my $process_dir  = $heimdall->config->{nantomics_transfer}->{process};
+my $chpc_home    = $heimdall->config->{main}->{chpc_home};
 
 ## Global collection
 my $project_ids;
 my $processed;
+open(my $FH, '>>', "$chpc_home/ucgduser.work.txt");
 
-find (\&id_find, $analysis);
+find (\&id_find, $analysis_dir);
 find (\&get_processed, $process_dir);
 
 ## process data check
 if ( ! keys %{$processed} ) {
-    say "No data found to transfer";
+    Rex::Logger::info('No data found to transfer', 'error');
     exit(0);
 }
 
@@ -47,7 +52,8 @@ foreach my $proj (keys %{$project_ids}) {
     }
 }
 
-map { say "file with no home: $_" } keys %$processed;
+map { Rex::Logger::info("File with no home: $_", 'warn') } keys %$processed;
+close $FH;
 
 ## ----------------------------------------------------------- ##
 
@@ -102,27 +108,29 @@ sub move_to_project {
     }
     } @dirs;
 
+    
+
     foreach my $file (@{$f_files} ) {
         chomp $file;
 
         ## doing some moving
         if ( $file =~ /g.vcf$/ ) {
-            say "mv $file $dirs[4]"
+            say $FH "mv $process_dir/$file $dirs[4]"
         }
         elsif ( $file =~ /WHAM/ ) {
-            say "mv $file $dirs[5]";
+            say $FH "mv $process_dir$/file $dirs[5]";
         }
         elsif ( $file =~ /fastqc/ ) {
-            say "mv $file $dirs[3]";
+            say $FH "mv $process_dir/$file $dirs[3]";
         }
         elsif ( $file =~ /stats/ ) {
-            say "mv $file $dirs[2]";
+            say $FH "mv $process_dir/$file $dirs[2]";
         }
         elsif ( $file =~ /flagstat/ ) {
-            say "mv $file $dirs[1]";
+            say $FH "mv $process_dir/$file $dirs[1]";
         }
         elsif ( $file =~ /bam$/ ) {
-            say "mv $file $dirs[0]";
+            say $FH "mv $process_dir/$file $dirs[0]";
         }
     }
 }
