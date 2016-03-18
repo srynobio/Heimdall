@@ -30,7 +30,7 @@ my $chpc_home    = $heimdall->config->{main}->{chpc_home};
 ## Global collection
 my $project_ids;
 my $processed;
-open(my $FH, '>>', "$chpc_home/ucgduser.work.txt");
+open(my $FH, '>', "$chpc_home/ucgduser.work.txt");
 
 find (\&id_find, $analysis_dir);
 find (\&get_processed, $process_dir);
