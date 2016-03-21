@@ -105,10 +105,8 @@ sub move_to_project {
     map { 
     if ( ! -d $_ ) {
         say "Directory $_ not found";
-    }
+        }
     } @dirs;
-
-    
 
     foreach my $file (@{$f_files} ) {
         chomp $file;
@@ -136,5 +134,4 @@ sub move_to_project {
 }
 
 ## ----------------------------------------------------------- ##
-
 
