@@ -44,7 +44,7 @@ task "chpc_connect_check",
 
 ## -------------------------------------------------- ##
 
-desc "Check usage of /scratch/ucgd/lustre for UCGD disk space offenders.";
+desc "Check usage of Lustre for UCGD disk space offenders.";
 task "check_user_usage",
   group => "chpc",
   sub {
@@ -146,7 +146,7 @@ task "process_nantomics_to_GVCF",
         chomp $file;
         ## check that gvcf files are not found.
         if ( $file =~ /g.vcf/ ) {
-            Rex::Logger::info( "GVCF file[s] found, process step error", "error" );
+            Rex::Logger::info( "GVCF file[s] found, please review $n_process directory", 'error');
             exit(0);
         }
         if ( $file =~ /bam$/ ) {
@@ -156,7 +156,7 @@ task "process_nantomics_to_GVCF",
 
     ## exit if file are present.
     if (! $file_present) {
-        Rex::Logger::info("No data to process", "warn");
+        Rex::Logger::info("No BAM files found to process", 'error');
         exit(0);
     }
 
@@ -164,24 +164,25 @@ task "process_nantomics_to_GVCF",
     my $date = localtime;
     $date =~ s/\s+/_/g;
     my $dir = 'FQF_Run_' . $date;
+    Rex::Logger::info("Creating report directory: $dir", 'warn');
 
     ## make directory
     run "mkdir",
       command => "mkdir $dir",
       cwd     => $run_projects;
 
-    ## source user bashrc
-    run "source ~/.bashrc";
+    ## source bashrc
+    my $source_cmd = "source ~/.bashrc";
 
     my $cmd = sprintf(
-        #"nohup %s -cfg %s -il %s -ql 100 -e cluster --run",
-        "nohup %s -cfg %s -il %s -ql 100 -e cluster > foo",
+        "%s -cfg %s -il %s -ql 100 -e cluster > foo",
+        #"%s -cfg %s -il %s -ql 100 -e cluster --run",
         $fqf, $n_cfg, $g_regions
     );
-    Rex::Logger::info( "Process data. Running command $cmd", "warn" );
-
+    Rex::Logger::info( "Processing data. Running command $cmd", "warn" );
+      
     run "process",
-      command => $cmd,
+      command => "$source_cmd; screen -d -m $cmd",
       cwd     => "$run_projects/$dir";
 };
 
@@ -250,30 +251,53 @@ task "process_other_to_GVCF",
   group => 'chpc',
   sub {
 
+    ## checking for bams 
+    my @pd = run "ls $o_process";
+
+    my $file_present;
+    foreach my $file (@pd) {
+        chomp $file;
+        ## check that gvcf files are not found.
+        if ( $file =~ /g.vcf/ ) {
+            Rex::Logger::info( "GVCF file[s] found, please review $n_process directory", 'error');
+            exit(0);
+        }
+        if ( $file =~ /bam$/ ) {
+            $file_present++;
+        }
+    }
+
+    ## exit if file are present.
+    if (! $file_present) {
+        Rex::Logger::info("No BAM files found to process", 'warn');
+        exit(0);
+    }
+
     ## make directory & run there.
     my $date = localtime;
     $date =~ s/\s+/_/g;
     my $dir = 'FQF_Run_' . $date;
+    Rex::Logger::info("Creating report directory: $dir", 'warn');
 
     ## make directory
     run "mkdir",
       command => "mkdir $dir",
       cwd     => $run_projects;
 
-    ## source user bashrc
-    run "source ~/.bashrc";
+    ## source bashrc
+    my $source_cmd = "source ~/.bashrc";
 
-    my $cmd = sprintf( "%s -cfg %s -il %s -ql 100 -e cluster > foo",
-        $fqf, $o_cfg, $e_regions );
-
-    my $exec = run "process",
-      command => $cmd,
+    my $cmd = sprintf(
+        "%s -cfg %s -il %s -ql 100 -e cluster > foo",
+        #"%s -cfg %s -il %s -ql 100 -e cluster --run",
+        $fqf, $n_cfg, $g_regions
+    );
+    Rex::Logger::info( "Process data. Running command $cmd", "warn" );
+      
+    run "process",
+      command => "$source_cmd; screen -d -m $cmd",
       cwd     => "$run_projects/$dir";
-
-    say $exec; 
-  };
-
-## -------------------------------------------------- ##
+};
 
 ## -------------------------------------------------- ##
 
