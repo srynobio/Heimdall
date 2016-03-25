@@ -84,7 +84,7 @@ sub update_log {
 ## Allows you to run cmd as ugpuser
 
 sub ugpuser_cmd {
-    my $command = ( @_ > 1 ) ? join( ' ', map { "'$_'" } @_ ) : shift;
+    my ($self, $command) = @_;
 
     my $cwd = getcwd;
     open( my $TERM, '| sudo /bin/su - ugpuser' ) or return $? = -1;
