@@ -4,7 +4,7 @@ use warnings;
 use feature 'say';
 use Moo;
 use Config::Std;
-use Cwd 'abs_path';
+use Cwd;
 #use Email::Stuffer;
 
 ##------------------------------------------------------##
@@ -76,6 +76,26 @@ sub error_log {
 sub update_log {
     my ( $self, $message ) = @_;
     $self->log_write( "[" . $self->time . "]" . " UPDATE - $message" );
+}
+
+##------------------------------------------------------##
+
+## Carson created
+## Allows you to run cmd as ugpuser
+
+sub ugpuser_cmd {
+    my $command = ( @_ > 1 ) ? join( ' ', map { "'$_'" } @_ ) : shift;
+
+    my $cwd = getcwd;
+    open( my $TERM, '| sudo /bin/su - ugpuser' ) or return $? = -1;
+    print $TERM "cd $cwd\n";
+    print $TERM "$command\n";
+    print $TERM "exit \$?\n";
+    close($TERM);
+
+    $? = -1 if ( $? >> 8 == 127 || $? >> 8 == 126 );    #can't run
+
+    return $?;
 }
 
 ##------------------------------------------------------##
