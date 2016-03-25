@@ -124,7 +124,7 @@ task "nantomics_data_status",
     foreach my $bam (@xfer) {
         chomp $bam;
         say "mv $bam $n_process";
-
+## take comment out to run        
         #run "mv $bam $o_process";
         push @moved, $bam;
     }
