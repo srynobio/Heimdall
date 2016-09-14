@@ -1,30 +1,90 @@
 package UGP::Tasks;
-use XML::Simple;
+##use XML::Simple;
 use File::Path qw(make_path);
 use Rex -base;
 use feature 'say';
 use FindBin;
 use lib "$FindBin::Bin/lib";
 use Heimdall;
+###use IO::Dir;
 
-use Rex::Commands::DB {
-    dsn      => "DBI:mysql:database=gnomex;host=localhost",
-    user     => "srynearson",
-    password => "iceJihif17&",
-};
+use DBI;
+use Data::Dumper;
 
 BEGIN {
-    $ENV{heimdall_config} = '/home/srynearson/Heimdall/heimdall.cfg';
+    $ENV{heimdall_config} = '/uufs/chpc.utah.edu/common/home/u0413537/Heimdall/heimdall.cfg';
+    $ENV{sqlite_file}     = '/uufs/chpc.utah.edu/common/home/ucgdstor/common/apps/kingspeak.peaks/ucgd_utils/trunk/data/UGP_DB.db';
 }
 
 ## make object for record keeping.
 my $heimdall = Heimdall->new( config_file => $ENV{heimdall_config} );
 
-my $properties = $heimdall->config->{gnomex}->{properties};
-my $gnomex_jar = $heimdall->config->{gnomex}->{gnomex_jar};
-my $task_dir   = $heimdall->config->{main}->{task_dir};
+## path to file on ugp.chpc
+my $properties  = $heimdall->config->{gnomex}->{properties};
+my $gnomex_jar  = $heimdall->config->{gnomex}->{gnomex_jar};
+my $test_master_dir = $heimdall->config->{main}->{test_master_dir};
+
+## using DBI due to conflict with ugp_db
+my $gnomex = DBI->connect(
+    'dbi:mysql:dbname=gnomex;host=155.101.15.87',
+    'srynearson', 
+    'iceJihif17&'
+);
+
+my $ugp_db = DBI->connect( 
+    "dbi:SQLite:dbname=$ENV{sqlite_file}", "", ""
+);
+
 
 ## -------------------------------------------------- ##
+
+desc "Will create a UGP-GNomEx analysis for each new project.";
+task "create_gnomex_analysis",
+  group => "ugp",
+  sub {
+
+    ## get and make lookup of all current projects;
+    my @projects;
+    LOCAL {
+        @projects = list_files($test_master_dir);
+    };
+
+    my %project_lookup;
+    foreach my $proj (@projects) {
+        $project_lookup{$proj}++;
+    }
+
+    ## ssh db to ugp gnomex db
+    my $genomex_sth = $gnomex->prepare("SELECT * from Analysis");
+    $genomex_sth->execute;
+
+print Dumper 'before', %project_lookup;   
+
+
+    while ( my $row = $genomex_sth->fetchrow_hashref ) {
+        my $gnomex_proj = $row->{name};
+
+        if ( $project_lookup{$gnomex_proj} ) {
+            delete $project_lookup{$gnomex_proj}
+        }
+
+    }
+print Dumper 'after', %project_lookup;   
+};
+
+## -------------------------------------------------- ##
+
+1;
+
+
+__END__
+
+
+
+
+
+
+
 
 desc "Reads UGP-GNomEx database for newly added Experiments. Reports if found, but no other actons.";
 task "report_new_experiments", sub {
@@ -106,6 +166,10 @@ task "report_new_experiments", sub {
 };
 
 ## -------------------------------------------------- ##
+
+1;
+
+__END__
 
 desc "Reads UGP-GNomEx database for newly added Experiments. Will create new Analysis and UGP directory structure if found.";
 task "complete_new_experiments", sub {
@@ -348,7 +412,7 @@ sub _analysis_build_update_db {
 
         ## check system return for errors.
         if ($?) {
-            $heimdall->error_log(
+            $heimdall->ERROR(
                 "CreateAnalysisMain for $lab->[2] could not be created. Message: $?"
             );
         }

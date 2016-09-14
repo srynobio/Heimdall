@@ -5,7 +5,6 @@ use feature 'say';
 use Moo;
 use Config::Std;
 use Cwd;
-#use Email::Stuffer;
 
 ##------------------------------------------------------##
 ##--- ATTS ---------------------------------------------##
@@ -39,7 +38,7 @@ sub _trigger_config_file {
     my $self = shift;
 
     my $config = $self->{config_file};
-    $self->error_log("Required heimdall.cfg file not found") if ( !-r $config );
+    $self->ERROR("Required heimdall.cfg file not found") if ( !-r $config );
 
     read_config $config => my %config;
     $self->config( \%config );
@@ -58,14 +57,14 @@ sub log_write {
 
 ##------------------------------------------------------##
 
-sub info_log {
+sub INFO {
     my ( $self, $message ) = @_;
     $self->log_write( "[" . $self->time . "]" . " INFO - $message" );
 }
 
 ##------------------------------------------------------##
 
-sub error_log {
+sub ERROR {
     my ( $self, $message ) = @_;
     $self->log_write( "[" . $self->time . "]" . " ERROR - $message" );
     exit(0);
@@ -73,7 +72,7 @@ sub error_log {
 
 ##------------------------------------------------------##
 
-sub update_log {
+sub UPDATE {
     my ( $self, $message ) = @_;
     $self->log_write( "[" . $self->time . "]" . " UPDATE - $message" );
 }
@@ -82,44 +81,22 @@ sub update_log {
 
 ## Carson created
 ## Allows you to run cmd as ugpuser
+## not tested.
 
-sub ugpuser_cmd {
-    my ($self, $command) = @_;
-
-    my $cwd = getcwd;
-    open( my $TERM, '| sudo /bin/su - ugpuser' ) or return $? = -1;
-    print $TERM "cd $cwd\n";
-    print $TERM "$command\n";
-    print $TERM "exit \$?\n";
-    close($TERM);
-
-    $? = -1 if ( $? >> 8 == 127 || $? >> 8 == 126 );    #can't run
-
-    return $?;
-}
-
-##------------------------------------------------------##
-
-sub ucgd_members_mail {
-    my ( $self, $message ) = @_;
-
-=cut
-    my $body = <<"EOM";
-
-UCGD status message sent to all UCGD members.
-
-@{$message}
-
-EOM
-
-my $stuffer = Email::Stuffer->new();
-$stuffer->from('shawn.rynearson@gmail.com')
-    ->subject("UCGD members message")
-    ->to('shawn.rynearson@gmail.com')
-    ->text_body($body)
-    ->send;
-=cut
-}
+#sub ugpuser_cmd {
+#    my ($self, $command) = @_;
+#
+#    my $cwd = getcwd;
+#    open( my $TERM, '| sudo /bin/su - ugpuser' ) or return $? = -1;
+#    print $TERM "cd $cwd\n";
+#    print $TERM "$command\n";
+#    print $TERM "exit \$?\n";
+#    close($TERM);
+#
+#    $? = -1 if ( $? >> 8 == 127 || $? >> 8 == 126 );    #can't run
+#
+#    return $?;
+#}
 
 ##------------------------------------------------------##
 
