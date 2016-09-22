@@ -15,7 +15,7 @@ use Data::Dumper;
 ## set location of config and sqlite file.
 BEGIN {
     $ENV{heimdall_config} = '/uufs/chpc.utah.edu/common/home/u0413537/Heimdall/heimdall.cfg';
-    $ENV{sqlite_file}     = '/uufs/chpc.utah.edu/common/home/ucgdstor/common/apps/kingspeak.peaks/ucgd_utils/trunk/data/UGP_DB.db';
+    $ENV{sqlite_file}     = '/uufs/chpc.utah.edu/common/home/u0413537/ucgd_utils/data/UGP_DB.db';
 }
 
 ## set up db
@@ -40,7 +40,7 @@ desc "Will check for new Projects in ugp_db and create project directories.";
 no_ssh task "generate_new_projects",
   group => "chpc",
   sub {
-    ## Make list of currently found directories
+    ## Make list of currently Projects.
     my @current = list_files($master_test_dir);
     my %dirs;
     foreach my $in (@current) {
@@ -48,21 +48,21 @@ no_ssh task "generate_new_projects",
         $dirs{$in}++;
     }
 
-    ## get all Project names.
+    ## get all Projects in ugp_db.
     ## and create lookup.
     my @projects = db select => {
         fields => "Project",
         from   => "Projects",
     };
 
-    my %projects;
+    my %projects_lookup;
     foreach my $name (@projects) {
         my $project_name = $name->{Project};
         $project_name =~ s/^\s+|\s+$|\/$//g;
-        $projects{$project_name}++;
+        $projects_lookup{$project_name}++;
     }
 
-    foreach my $current ( keys %projects ) {
+    foreach my $current ( keys %projects_lookup ) {
         if ( $dirs{$current} ) {
             Rex::Logger::info( "Directory $current exists", "warn" );
             next;
@@ -71,8 +71,13 @@ no_ssh task "generate_new_projects",
             my $new_path = "$master_test_dir/$current";
             make_path($new_path);
 
+            ## add UGP path
             my $ugp_path = "$new_path/UGP";
             make_path($ugp_path);
+
+            ## add external data
+            my $exdata_path = "$new_path/ExternalData";
+            make_path($exdata_path);
 
             ## create the needed directories
             Rex::Logger::info(
@@ -115,13 +120,19 @@ no_ssh task "create_individuals_files",
         push @{ $indiv{$p_name} }, $id;
     }
 
-    foreach my $peps ( keys %indiv ) {
-        my $project_path = "$master_test_dir/$peps";
+    foreach my $pep ( keys %indiv ) {
+        my $project_path = "$master_test_dir/$pep";
 
-        if ( -e $project_path and !-e "$project_path/individuals.txt" ) {
-            my $FH = file_write("$project_path/individuals.txt");
-            map { say $FH->write("$_\n") } @{ $indiv{$peps} };
-            Rex::Logger::info( "Individuals file created for $peps project", "warn" );
+        next if ( !$pep );
+        my $indivFile = "$pep-individuals.txt";
+        if ( -e $project_path ) {
+            my $FH = file_write("$project_path/$indivFile");
+            foreach my $out ( @{ $indiv{$pep} } ) {
+                $FH->write("$out\n");
+            }
+            Rex::Logger::info(
+                "Updating or creating individuals file for $pep project.",
+                "warn" );
             $FH->close;
         }
     }
@@ -193,7 +204,7 @@ sub _directory_info {
 
 ## Get nantomics paths from config
 my $n_process = $heimdall->config->{nantomics_transfer}->{process};
-my $rnaseq    = $heimdall->config->{nantomics_transfer}->{rnaseq};
+my $n_rnaseq    = $heimdall->config->{nantomics_transfer}->{rnaseq};
 my $n_xfer    = $heimdall->config->{nantomics_transfer}->{xfer};
 
 ## -------------------------------------------------- ##
@@ -206,8 +217,23 @@ no_ssh task "nantomics_xfer_transfer",
     ## check xfer directory.
     my @xfer = list_files($n_xfer);
     if ( !@xfer ) {
-        Rex::Logger::info( "No xfer files to transfer", "warn" );
+        Rex::Logger::info( 
+            "No files found in xfer directory to transfer",
+            "warn" 
+        );
         exit(0);
+    }
+
+    ## check process_data directory
+    my @n_process = list_files($n_process);
+    foreach my $found (@n_process) {
+        if ( $found =~ /bam$/ ) {
+            Rex::Logger::info(
+                "BAM Files found in Nantomics Process_Data directory, please move first.",
+                "warn"
+            );
+            exit(0);
+        }
     }
 
     ## collect different file types.
@@ -218,53 +244,22 @@ no_ssh task "nantomics_xfer_transfer",
     map {
         my $abs_rna = abs_path($_);
 
-        # ---> move("$abs_rna", "$rnaseq");
-        say "move(\"$abs_rna\", \"$rnaseq\");";
+        # ---> move("$abs_rna", "$n_rnaseq");
+        say "move(\"$abs_rna\", \"$n_rnaseq\");";
+
+        Rex::Logger::info( "File: $_ moved into $n_rnaseq directory.", "warn" );
     } @rna if @rna;
 
-    ## xfer individuals list.
-    my %xfer_ids;
-    foreach my $file (@dna) {
-        chomp $file;
-        my ( $individual, undef ) = split /--/, $file;
-        $xfer_ids{$individual} = $file;
-    }
+    ## transfer DNA data
+    map {
+        my $abs_dna = abs_path($_);
 
-    ## ugp_db sample table.
-    my @xfer_ids;
-    my @samples = db select => {
-        fields => "Sample_ID,Project,Sequence_Center",
-        from   => "Samples",
-        where  => "Sequence_Center='Nantomics'",
-    };
+        # ---> move("$abs_rna", "$n_rnaseq");
+        say "move(\"$abs_dna\", \"$n_process\");";
 
-    ## Make master Projects lookup.
-    my %project;
-    foreach my $collect (@samples) {
-        my $project = $collect->{Project};
-        my $id      = $collect->{Sample_ID};
-        $project{$id} = $project;
-    }
-
-    ## Search and move.
-    foreach my $dload ( keys %xfer_ids ) {
-        if ( $project{$dload} ) {
-            my $mv_to =
-              "$master_test_dir/$project{$dload}/UGP/Data/Primary_Data";
-            my $abs_xfer = abs_path( $xfer_ids{$dload} );
-            say "move(\"$abs_xfer\", \"$mv_to\");";
-            # ---> move("$abs_xfer", "$mv_to");
-            Rex::Logger::info(
-                "File: $xfer_ids{$dload} moved into project $project{$dload}.",
-                "warn"
-            );
-        }
-        else {
-            Rex::Logger::info(
-                "Could not find a project for file: $xfer_ids{$dload}",
-                "warn" );
-        }
-    }
+        Rex::Logger::info( "File: $_ moved into $n_process directory.",
+            "warn" );
+    } @dna if @dna;
 };
 
 ## -------------------------------------------------- ##
