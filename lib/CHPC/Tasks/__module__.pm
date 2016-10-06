@@ -15,10 +15,17 @@ use Data::Dumper;
 ## set location of config and sqlite file.
 BEGIN {
     $ENV{heimdall_config} = '/uufs/chpc.utah.edu/common/home/u0413537/Heimdall/heimdall.cfg';
-    $ENV{sqlite_file}     = '/uufs/chpc.utah.edu/common/home/u0413537/ucgd_utils/data/UGP_DB.db';
+    $ENV{sqlite_file}     = '/scratch/ucgd/lustre/ugpuser/apps/kingspeak.peaks/ucgd_utils/trunk/data/UGP_DB.db';
 }
 
-## set up db
+## using DBI due to conflict with ugp_db
+my $gnomex = DBI->connect( 
+    'dbi:mysql:dbname=gnomex;host=155.101.15.87',
+    'srynearson', 
+    'iceJihif17&'
+);
+
+## set connection to ugp_db
 use Rex::Commands::DB {
     dsn => "dbi:SQLite:dbname=$ENV{sqlite_file}", "", "",
 };
@@ -27,9 +34,14 @@ use Rex::Commands::DB {
 my $heimdall = Heimdall->new( config_file => $ENV{heimdall_config} );
 
 ## Global calls
-## will become Project directory under scratch-lustre
-my $master_test_dir = $heimdall->config->{main}->{test_master_dir};
-my $genomex_analysis = $heimdall->config->{repository}->{genomex_analysis};
+# will become Project directory under scratch-lustre
+#####my $master_test_dir = $heimdall->config->{main}->{test_master_dir};
+####my $analysis_path = $heimdall->config->{repository}->{genomex_analysis};
+
+## transfer dirs from config file
+my $n_transfer = $heimdall->config->{nantomics_transfer}->{process};
+my $w_transfer = $heimdall->config->{washu_transfer}->{process};
+my $o_transfer = $heimdall->config->{other_transfer}->{process};
 
 ## -------------------------------------------------- ##
 ## -------------------------------------------------- ##
@@ -40,35 +52,57 @@ desc "Will check for new Projects in ugp_db and create project directories.";
 no_ssh task "generate_new_projects",
   group => "chpc",
   sub {
-    ## Make list of currently Projects.
-    my @current = list_files($master_test_dir);
+
+    my $gnomex_analysis =
+      $gnomex->prepare("SELECT idAnalysis,number,name from Analysis");
+    $gnomex_analysis->execute;
+
     my %dirs;
-    foreach my $in (@current) {
-        chomp $in;
-        $dirs{$in}++;
+    while ( my $row = $gnomex_analysis->fetchrow_hashref ) {
+        my $project = $row->{name};
+        $dirs{$project} = {
+            number      => $row->{number},
+            analysis_id => $row->{idAnalysis},
+        };
     }
 
     ## get all Projects in ugp_db.
     ## and create lookup.
     my @projects = db select => {
-        fields => "Project",
+        fields => "Project,Sequence_Center",
         from   => "Projects",
     };
 
-    my %projects_lookup;
-    foreach my $name (@projects) {
-        my $project_name = $name->{Project};
+    my %ugp_lookup;
+    foreach my $ugp (@projects) {
+        my $project_name = $ugp->{Project};
         $project_name =~ s/^\s+|\s+$|\/$//g;
-        $projects_lookup{$project_name}++;
+        $ugp_lookup{$project_name} =
+          { sequence_center => $ugp->{Sequence_Center}, };
     }
 
-    foreach my $current ( keys %projects_lookup ) {
+    foreach my $current ( keys %ugp_lookup ) {
         if ( $dirs{$current} ) {
             Rex::Logger::info( "Directory $current exists", "warn" );
             next;
         }
         else {
-            my $new_path = "$master_test_dir/$current";
+
+            ## find right center first.
+            my $project_space = $ugp_lookup{$current};
+
+            my $master_path;
+            if ( $project_space =~ /nantomics/i ) {
+                $master_path = $n_transfer;
+            }
+            elsif ( $project_space =~ /washu/i ) {
+                $master_path = $w_transfer;
+            }
+            else {
+                $master_path = $o_transfer;
+            }
+
+            my $new_path = "$master_path/$current";
             make_path($new_path);
 
             ## add UGP path
@@ -108,7 +142,7 @@ no_ssh task "create_individuals_files",
   sub {
     ## ugp_db sample table.
     my @samples = db select => {
-        fields => "Sample_ID,Project",
+        fields => "Sample_ID,Project,Sequence_Center",
         from   => "Samples",
     };
 
@@ -117,23 +151,47 @@ no_ssh task "create_individuals_files",
         my $id     = $part->{Sample_ID};
         my $p_name = $part->{Project};
         next if ( !$id );
-        push @{ $indiv{$p_name} }, $id;
+
+        push @{ $indiv{$p_name} },
+          {
+            id              => $part->{Sample_ID},
+            sequence_center => $part->{Sequence_Center},
+          };
     }
 
     foreach my $pep ( keys %indiv ) {
-        my $project_path = "$master_test_dir/$pep";
 
-        next if ( !$pep );
+        ## find right center first.
+        my $project_space = @{ $indiv{$pep} }[0]->{sequence_center};
+
+        my $master_path;
+        if ( $project_space =~ /nantomics/i ) {
+            $master_path = $n_transfer;
+        }
+        elsif ( $project_space =~ /washu/i ) {
+            $master_path = $w_transfer;
+        }
+        else {
+            $master_path = $o_transfer;
+        }
+
+        my $project_path = "$master_path/$pep";
+
+        next if ( !$project_path );
         my $indivFile = "$pep-individuals.txt";
-        if ( -e $project_path ) {
+        if ( -w -e $project_path ) {
             my $FH = file_write("$project_path/$indivFile");
             foreach my $out ( @{ $indiv{$pep} } ) {
-                $FH->write("$out\n");
+                $FH->write("$out->{id}\n");
             }
             Rex::Logger::info(
                 "Updating or creating individuals file for $pep project.",
                 "warn" );
             $FH->close;
+        }
+        else {
+            Rex::Logger::info(
+                "Can not create individual file for $pep project.", 'warn' );
         }
     }
 };

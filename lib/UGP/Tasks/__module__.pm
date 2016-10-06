@@ -12,7 +12,7 @@ use Data::Dumper;
 
 BEGIN {
     $ENV{heimdall_config} = '/uufs/chpc.utah.edu/common/home/u0413537/Heimdall/heimdall.cfg';
-    $ENV{sqlite_file}     = '/uufs/chpc.utah.edu/common/home/u0413537/ucgd_utils/data/UGP_DB.db';
+    $ENV{sqlite_file}     = '/scratch/ucgd/lustre/ugpuser/apps/kingspeak.peaks/ucgd_utils/trunk/data/UGP_DB.db';
 }
 
 ## make object for record keeping.
@@ -84,8 +84,12 @@ task "create_gnomex_analysis",
             ## create analysis in UGP-GNomEx.
             my $createAnalysis = run $cmd;
             if ( !$createAnalysis ) {
-                Rex::Logger::info( "Analysis for $proj_name was not created.",
-                    'error' );
+                Rex::Logger::info( "Analysis for $proj_name was not created.", 'warn');
+                Rex::Logger::info( "Command which could not be ran: $cmd", 'warn');
+                next;
+            }
+            else {
+                Rex::Logger::info( "Analysis created for $proj_name.", 'warn');
             }
 
             ## parse xml retun and add analysis to ugp_db.
@@ -115,13 +119,48 @@ task "create_gnomex_analysis",
 
 ## -------------------------------------------------- ##
 
+desc "Check and update ugp_db People First_Name & Last_Name to match GnomEx.";
+task "check_gnomex_ugpdb_user_names",
+  group => "ugp",
+  sub {
+
+    ## get ugp_db People!
+    my @ugp_users = db select => {
+        fields => "First_Name,Last_Name",
+        from   => 'People',
+    };
+
+    my %ugp_db_lookup;
+    foreach my $ugp_person (@ugp_users) {
+        my $found = "$ugp_person->{First_Name}:$ugp_person->{Last_Name}";
+        $ugp_db_lookup{$found}++;
+    }
+
+    ## Collect data from ugp gnomex db.
+    my $gnomex_users =
+      $gnomex->prepare("SELECT lastName, FirstName from AppUser");
+    $gnomex_users->execute;
+
+    my %user_to_add;
+    while ( my $row = $gnomex_users->fetchrow_hashref ) {
+        my $name = "$row->{FirstName}:$row->{lastName}";
+        if ( !$ugp_db_lookup{$name} ) {
+            $user_to_add{$name}++;
+        }
+    }
+
+    foreach my $need ( keys %user_to_add ) {
+        my ( $f_name, $l_name ) = split /:/, $need;
+        Rex::Logger::info( "Missing user from ugp_db $need", 'warn' );
+    }
+};
+
+## -------------------------------------------------- ##
+
 1;
 
 
 __END__
-
-
-
 
 
 
