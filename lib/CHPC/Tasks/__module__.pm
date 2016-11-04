@@ -42,21 +42,28 @@ no_ssh task "generate_new_projects",
   group => "chpc",
   sub {
 
-    my $gnomex_analysis =
-      $gnomex->prepare("SELECT idAnalysis,number,name from Analysis");
-    $gnomex_analysis->execute;
-
+    my $repository = $heimdall->config->{repository}->{genomex_analysis};
     my %dirs;
-    while ( my $row = $gnomex_analysis->fetchrow_hashref ) {
-        my $project = $row->{name};
-        $dirs{$project} = {
-            number      => $row->{number},
-            analysis_id => $row->{idAnalysis},
-        };
-    }
+    finddepth(
+        {
+            wanted => sub {
+                return if ( ! -d $_ );
+                return if ( $_ eq '.' || $_ eq '..' );
+
+                ## find only dir matching template of default project name.
+                if ( $File::Find::dir =~ /\d{2,}-\d{2,}-\d{2,}\w+$/g ) {
+                    my @project_data = split /\//, $File::Find::dir;
+                    $dirs{ $project_data[-1] }++;
+                }
+                else { return }
+            },
+            bydepth => 1,
+        },
+        $repository
+    );
 
     ## get all Projects in ugp_db.
-    ## and create lookup.
+    ## and create lookup table.
     my @projects = db select => {
         fields => "Project,Sequence_Center",
         from   => "Projects",
@@ -76,13 +83,17 @@ no_ssh task "generate_new_projects",
             next;
         }
         else {
-
             ## find right center first.
             my $project_space = $ugp_lookup{$current};
 
+            if ( $project_space->{sequence_center} !~
+                /(WashU|Washington|Nantomics)/i )
+            {
+                $project_space->{sequence_center} = 'other';
+            }
+
             my $master_path = _set_project_path($project_space);
             my $new_path    = "$master_path/$current";
-
             make_path($new_path);
 
             ## add UGP path
@@ -130,6 +141,7 @@ no_ssh task "create_individuals_files",
     foreach my $part (@samples) {
         my $id     = $part->{Sample_ID};
         my $p_name = $part->{Project};
+        next if ( !$p_name );
         next if ( !$id );
 
         push @{ $indiv{$p_name} },
@@ -140,11 +152,16 @@ no_ssh task "create_individuals_files",
     }
 
     foreach my $pep ( keys %indiv ) {
-
         ## find right center first.
-        my $project_space = @{ $indiv{$pep} }[0]->{sequence_center};
+        my $project_space = $indiv{$pep}[0];
 
-        my $master_path = _set_project_path($project_space);
+        if ( $project_space->{sequence_center} !~
+            /(WashU|Washington|Nantomics)/i )
+        {
+            $project_space->{sequence_center} = 'other';
+        }
+
+        my $master_path  = _set_project_path($project_space);
         my $project_path = "$master_path/$pep";
 
         next if ( !$project_path );
@@ -155,13 +172,16 @@ no_ssh task "create_individuals_files",
                 $FH->write("$out->{id}\n");
             }
             Rex::Logger::info(
-                "Updating or creating individuals file for $pep project.",
-                "warn" );
+                "Updating or creating individuals file for $pep project in $project_path.",
+                "warn"
+            );
             $FH->close;
         }
         else {
             Rex::Logger::info(
-                "Can not create individual file for $pep project.", 'warn' );
+                "Can not create individual file for $pep project in $project_path",
+                'warn'
+            );
         }
     }
 };
@@ -175,34 +195,17 @@ sub _set_project_path {
     my $process_dir = $heimdall->config->{process_directories};
 
     my $master_path;
-    if ( $project_space =~ /nantomics/i ) {
+    if ( $project_space->{sequence_center} =~ /Nantomics/i ) {
         $master_path = $process_dir->{process}->[0];
     }
-    elsif ( $project_space =~ /washu/i ) {
+    elsif ( $project_space->{sequence_center} =~ /(WashU|Washington)/i ) {
         $master_path = $process_dir->{process}->[1];
     }
-    else {
+    elsif ( $project_space->{sequence_center} =~ /other/i ) {
         $master_path = $process_dir->{process}->[2];
     }
     return $master_path;
 }
-
-## -------------------------------------------------- ##
-## process directory work
-## -------------------------------------------------- ##
-
-desc "Process Primary_Bams to GVCF.";
-task "process_to_gvcf",
-  group => 'chpc',
-  sub {
-
-
-
-
-
-
-
-};
 
 ## -------------------------------------------------- ##
 
