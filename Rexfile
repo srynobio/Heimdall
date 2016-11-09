@@ -4,7 +4,6 @@ use feature 'say';
 logging to_file => "Heimdall.run.log";
 set connection  => "SSH";
 
-####use Cwd 'abs_path';
 use Parallel::ForkManager;
 use IPC::Cmd 'run';
 require UGP::Tasks;
@@ -32,7 +31,7 @@ desc "Create bash jobs for all Process data projects.
 
 Additional option:
     --background=<longevity or thousand> [default thousand]
-
+    --region=<WGS or WES> [default WES]
 ";
 task "Nantomics_process_data_dir", sub {
     my $command_line = shift;
@@ -58,6 +57,15 @@ task "Nantomics_process_data_dir", sub {
         else {
             $background      = $thousand;
             $background_name = '1000Genomes';
+        }
+
+        ## set region file to use.
+        my $region;
+        if ( $command_line->{region} =~ /WGS/i ) {
+            $region = $heimdall->config->{region_files}->{WGS};
+        }
+        else {
+            $region = $heimdall->config->{region_files}->{WES};
         }
 
         ## data path.
@@ -113,10 +121,14 @@ task "Nantomics_process_data_dir", sub {
             my $back_cmd = sprintf(
                 "perl -p -i -e 's|^backgrounds:|backgrounds:$background|' $tmp_dir/$c_file"
             );
-            # run commands. 
+            my $region_cmd = sprintf(
+                "perl -p -i -e 's|^region:|region:$region|' $tmp_dir/$c_file");
+
+            # run commands.
             `$data_cmd`;
             `$fqf_cmd`;
             `$back_cmd`;
+            `$region_cmd`;
 
             push @updated_cfgs, "$tmp_dir/$c_file";
         }
@@ -176,6 +188,7 @@ Required option:
 
 Additional option:
     --background=<longevity or thousand> [default thousand]
+    --region=<WGS or WES> [default WES]
 
 ";
 task "Nantomics_process_data", sub {
@@ -187,7 +200,7 @@ task "Nantomics_process_data", sub {
     if ( !$project ) {
         Rex::Logger::info( "Option not given (--project=[project])", "error" );
     }
-
+    
     ## set up the background location.
     my $background;
     my $background_name;
@@ -199,6 +212,15 @@ task "Nantomics_process_data", sub {
     else {
         $background      = $thousand;
         $background_name = '1000Genomes';
+    }
+
+    ## set region file to use.
+    my $region;
+    if ( $command_line->{region} =~ /WGS/i ) {
+        $region = $heimdall->config->{region_files}->{WGS};
+    }
+    else {
+        $region = $heimdall->config->{region_files}->{WES};
     }
 
     ## data path.
@@ -253,11 +275,14 @@ task "Nantomics_process_data", sub {
         my $back_cmd = sprintf(
             "perl -p -i -e 's|^backgrounds:|backgrounds:$background|' $tmp_dir/$c_file"
         );
+        my $region_cmd = sprintf(
+            "perl -p -i -e 's|^region:|region:$region|' $tmp_dir/$c_file" );
 
         # run commands.
         `$data_cmd`;
         `$fqf_cmd`;
         `$back_cmd`;
+        `$region_cmd`;
 
         push @updated_cfgs, "$tmp_dir/$c_file";
     }
@@ -326,10 +351,10 @@ task "Process_bash_jobs", sub {
 
     foreach my $sh ( readdir $DIR ) {
         next if ( $sh eq '.' || $sh eq '..' );
-        Rex::Logger::info( "Running shell script $sh.", 'warn' );
 
         $pm->start and next;
 
+        Rex::Logger::info( "Running shell script $sh, with PID: $$.", 'warn' );
         my $cmd = "$process_dir/$sh";
         my ( $success, $error_message, $full_buf, $stdout_buf, $stderr_buf ) =
           run( command => $cmd, verbose => 0 );

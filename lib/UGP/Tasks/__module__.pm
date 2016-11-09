@@ -11,25 +11,23 @@ use XML::Simple;
 use Data::Dumper;
 
 BEGIN {
-    $ENV{heimdall_config} = '/uufs/chpc.utah.edu/common/home/u0413537/Heimdall/heimdall.cfg';
-    $ENV{sqlite_file}     = '/scratch/ucgd/lustre/ugpuser/apps/kingspeak.peaks/ucgd_utils/trunk/data/UGP_DB.db';
+    $ENV{heimdall_config} =
+      '/uufs/chpc.utah.edu/common/home/u0413537/Heimdall/heimdall.cfg';
+    $ENV{sqlite_file} =
+'/scratch/ucgd/lustre/ugpuser/apps/kingspeak.peaks/ucgd_utils/trunk/data/UGP_DB.db';
 }
 
 ## make object for record keeping.
 my $heimdall = Heimdall->new( config_file => $ENV{heimdall_config} );
 
 ## path to file on ugp.chpc
-my $properties  = $heimdall->config->{gnomex}->{properties};
-my $gnomex_jar  = $heimdall->config->{gnomex}->{gnomex_jar};
-####my $test_master_dir = $heimdall->config->{main}->{test_master_dir};
-my $repos = $heimdall->config->{gnomex}->{analysisPath};
+my $properties = $heimdall->config->{gnomex}->{properties};
+my $gnomex_jar = $heimdall->config->{gnomex}->{gnomex_jar};
+my $repos      = $heimdall->config->{gnomex}->{analysisPath};
 
 ## using DBI due to conflict with ugp_db
-my $gnomex = DBI->connect(
-    'dbi:mysql:dbname=gnomex;host=155.101.15.87',
-    'srynearson', 
-    'iceJihif17&'
-);
+my $gnomex = DBI->connect( 'dbi:mysql:dbname=gnomex;host=155.101.15.87',
+    'srynearson', 'iceJihif17&' );
 
 ## set up ugp_db
 use Rex::Commands::DB {
@@ -38,7 +36,8 @@ use Rex::Commands::DB {
 
 ## -------------------------------------------------- ##
 
-desc "Will create a UGP-GNomEx analysis for each new project and updated ugp_db.";
+desc
+  "Will create a UGP-GNomEx analysis for each new project and updated ugp_db.";
 task "create_gnomex_analysis",
   group => "ugp",
   sub {
@@ -84,12 +83,14 @@ task "create_gnomex_analysis",
             ## create analysis in UGP-GNomEx.
             my $createAnalysis = run $cmd;
             if ( !$createAnalysis ) {
-                Rex::Logger::info( "Analysis for $proj_name was not created.", 'warn');
-                Rex::Logger::info( "Command which could not be ran: $cmd", 'warn');
+                Rex::Logger::info( "Analysis for $proj_name was not created.",
+                    'warn' );
+                Rex::Logger::info( "Command which could not be ran: $cmd",
+                    'warn' );
                 next;
             }
             else {
-                Rex::Logger::info( "Analysis created for $proj_name.", 'warn');
+                Rex::Logger::info( "Analysis created for $proj_name.", 'warn' );
             }
 
             ## parse xml retun and add analysis to ugp_db.
@@ -115,11 +116,12 @@ task "create_gnomex_analysis",
             'warn'
         );
     }
-};
+  };
 
 ## -------------------------------------------------- ##
 
-desc "Checks ugp_db People table for First_Name & Last_Name match to UGP-GNomEx.";
+desc
+  "Checks ugp_db People table for First_Name & Last_Name match to UGP-GNomEx.";
 task "check_gnomex_ugpdb_user_names",
   group => "ugp",
   sub {
@@ -153,7 +155,7 @@ task "check_gnomex_ugpdb_user_names",
         my ( $f_name, $l_name ) = split /:/, $need;
         Rex::Logger::info( "Missing user from ugp_db $need", 'warn' );
     }
-};
+  };
 
 ## -------------------------------------------------- ##
 

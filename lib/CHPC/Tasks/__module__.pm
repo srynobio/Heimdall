@@ -14,16 +14,11 @@ use Data::Dumper;
 
 ## set location of config and sqlite file.
 BEGIN {
-    $ENV{heimdall_config} = '/uufs/chpc.utah.edu/common/home/u0413537/Heimdall/heimdall.cfg';
-    $ENV{sqlite_file}     = '/scratch/ucgd/lustre/ugpuser/apps/kingspeak.peaks/ucgd_utils/trunk/data/UGP_DB.db';
+    $ENV{heimdall_config} = 
+        '/uufs/chpc.utah.edu/common/home/u0413537/Heimdall/heimdall.cfg';
+    $ENV{sqlite_file} =
+        '/scratch/ucgd/lustre/ugpuser/apps/kingspeak.peaks/ucgd_utils/trunk/data/UGP_DB.db';
 }
-
-## using DBI due to conflict with ugp_db
-my $gnomex = DBI->connect( 
-    'dbi:mysql:dbname=gnomex;host=155.101.15.87',
-    'srynearson', 
-    'iceJihif17&'
-);
 
 ## set connection to ugp_db
 use Rex::Commands::DB {
@@ -47,7 +42,7 @@ no_ssh task "generate_new_projects",
     finddepth(
         {
             wanted => sub {
-                return if ( ! -d $_ );
+                return if ( !-d $_ );
                 return if ( $_ eq '.' || $_ eq '..' );
 
                 ## find only dir matching template of default project name.
