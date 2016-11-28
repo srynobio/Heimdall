@@ -12,9 +12,9 @@ use Data::Dumper;
 
 BEGIN {
     $ENV{heimdall_config} =
-      '/uufs/chpc.utah.edu/common/home/u0413537/Heimdall/heimdall.cfg';
+        '/uufs/chpc.utah.edu/common/home/u0413537/Heimdall/heimdall.cfg';
     $ENV{sqlite_file} =
-'/scratch/ucgd/lustre/ugpuser/apps/kingspeak.peaks/ucgd_utils/trunk/data/UGP_DB.db';
+        '/scratch/ucgd/lustre/ugpuser/apps/kingspeak.peaks/ucgd_utils/trunk/data/UGP_DB.db';
 }
 
 ## make object for record keeping.
@@ -31,7 +31,8 @@ my $gnomex = DBI->connect( 'dbi:mysql:dbname=gnomex;host=155.101.15.87',
 
 ## set up ugp_db
 use Rex::Commands::DB {
-    dsn => "dbi:SQLite:dbname=$ENV{sqlite_file}", "", "",
+    dsn => "dbi:SQLite:dbname=$ENV{sqlite_file}",
+    "", "",
 };
 
 ## -------------------------------------------------- ##

@@ -22,7 +22,8 @@ BEGIN {
 
 ## set connection to ugp_db
 use Rex::Commands::DB {
-    dsn => "dbi:SQLite:dbname=$ENV{sqlite_file}", "", "",
+    dsn => "dbi:SQLite:dbname=$ENV{sqlite_file}",
+    "", "",
 };
 
 ## make object for record keeping.
@@ -36,26 +37,6 @@ desc "Will check for new Projects in ugp_db and create project directories.";
 no_ssh task "generate_new_projects",
   group => "chpc",
   sub {
-
-    my $repository = $heimdall->config->{repository}->{genomex_analysis};
-    my %dirs;
-    finddepth(
-        {
-            wanted => sub {
-                return if ( !-d $_ );
-                return if ( $_ eq '.' || $_ eq '..' );
-
-                ## find only dir matching template of default project name.
-                if ( $File::Find::dir =~ /\d{2,}-\d{2,}-\d{2,}\w+$/g ) {
-                    my @project_data = split /\//, $File::Find::dir;
-                    $dirs{ $project_data[-1] }++;
-                }
-                else { return }
-            },
-            bydepth => 1,
-        },
-        $repository
-    );
 
     ## get all Projects in ugp_db.
     ## and create lookup table.
@@ -73,56 +54,53 @@ no_ssh task "generate_new_projects",
     }
 
     foreach my $current ( keys %ugp_lookup ) {
-        if ( $dirs{$current} ) {
-            Rex::Logger::info( "Directory $current exists", "warn" );
+
+        my $project_space = $ugp_lookup{$current};
+
+        ## find right center first.
+        if ( $project_space->{sequence_center} !~
+            /(WashU|Washington|Nantomics)/i )
+        {
+            $project_space->{sequence_center} = 'other';
+        }
+
+        my $master_path = _set_project_path($project_space);
+        my $new_path    = "$master_path/$current";
+
+        ## skip if exists
+        if ( -e $new_path ) {
+            Rex::Logger::info( "Directory $new_path exists, skipping.",
+                "warn" );
             next;
         }
-        else {
-            ## find right center first.
-            my $project_space = $ugp_lookup{$current};
 
-            if ( $project_space->{sequence_center} !~
-                /(WashU|Washington|Nantomics)/i )
-            {
-                $project_space->{sequence_center} = 'other';
-            }
-
-            my $master_path = _set_project_path($project_space);
-            my $new_path    = "$master_path/$current";
-            make_path($new_path);
-
-            ## add UGP path
-            my $ugp_path = "$new_path/UGP";
-            make_path($ugp_path);
-
-            ## add external data
-            my $exdata_path = "$new_path/ExternalData";
-            make_path($exdata_path);
-
-            ## create the needed directories
+        make_path( $new_path, { error => \my $err } );
+        ## only need to check high level.
+        if (@$err) {
             Rex::Logger::info(
-                "Building needed directories for $current project", "warn" );
-            make_path(
-                "$ugp_path/Data/PolishedBams",
-                "$ugp_path/Data/Primary_Data",
-                "$ugp_path/Reports/RunLogs",
-                "$ugp_path/Reports/fastqc",
-                "$ugp_path/Reports/flagstat",
-                "$ugp_path/Reports/stats",
-                "$ugp_path/Reports/featureCounts",
-                "$ugp_path/Reports/SnpEff",
-                "$ugp_path/VCF/Complete",
-                "$ugp_path/VCF/GVCFs",
-                "$ugp_path/VCF/WHAM",
-                "$ugp_path/Analysis",
-            );
+                "Error occured making directory $new_path, skipping", "warn" );
+            next;
         }
+
+        ## add UGP path
+        my $ugp_path = "$new_path/UGP";
+        make_path($ugp_path);
+
+        ## add external data
+        my $exdata_path = "$new_path/ExternalData";
+        make_path($exdata_path);
+
+        ## create the needed directories
+        Rex::Logger::info( "Building needed directories for $current project",
+            "warn" );
+        make_path( "$ugp_path/Data/Primary_Data", "$ugp_path/Analysis", );
     }
-};
+  };
 
 ## -------------------------------------------------- ##
 
-desc "Will check ugp_db and create an individuals.txt file foreach known project.";
+desc
+  "Will check ugp_db and create an individuals.txt file foreach known project.";
 no_ssh task "create_individuals_files",
   group => "chpc",
   sub {
@@ -179,7 +157,7 @@ no_ssh task "create_individuals_files",
             );
         }
     }
-};
+  };
 
 ## -------------------------------------------------- ##
 
