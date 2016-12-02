@@ -10,11 +10,10 @@ use FindBin;
 use lib "$FindBin::Bin/lib";
 use Heimdall;
 
-use Data::Dumper;
-
 ## set location of config and sqlite file.
+## update on project move.
 BEGIN {
-    $ENV{heimdall_config} = 
+    $ENV{heimdall_config} =
         '/uufs/chpc.utah.edu/common/home/u0413537/Heimdall/heimdall.cfg';
     $ENV{sqlite_file} =
         '/scratch/ucgd/lustre/ugpuser/apps/kingspeak.peaks/ucgd_utils/trunk/data/UGP_DB.db';
@@ -73,8 +72,8 @@ no_ssh task "generate_new_projects",
                 "warn" );
             next;
         }
-
         make_path( $new_path, { error => \my $err } );
+
         ## only need to check high level.
         if (@$err) {
             Rex::Logger::info(
@@ -101,6 +100,7 @@ no_ssh task "generate_new_projects",
 
 desc
   "Will check ugp_db and create an individuals.txt file foreach known project.";
+
 no_ssh task "create_individuals_files",
   group => "chpc",
   sub {
@@ -145,14 +145,14 @@ no_ssh task "create_individuals_files",
                 $FH->write("$out->{id}\n");
             }
             Rex::Logger::info(
-                "Updating or creating individuals file for $pep project in $project_path.",
+"Updating or creating individuals file for $pep project in $project_path.",
                 "warn"
             );
             $FH->close;
         }
         else {
             Rex::Logger::info(
-                "Can not create individual file for $pep project in $project_path",
+"Can not create individual file for $pep project in $project_path",
                 'warn'
             );
         }

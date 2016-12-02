@@ -8,8 +8,7 @@ use Heimdall;
 use DBI;
 use XML::Simple;
 
-use Data::Dumper;
-
+## update on any project move.
 BEGIN {
     $ENV{heimdall_config} =
         '/uufs/chpc.utah.edu/common/home/u0413537/Heimdall/heimdall.cfg';
@@ -23,7 +22,7 @@ my $heimdall = Heimdall->new( config_file => $ENV{heimdall_config} );
 ## path to file on ugp.chpc
 my $properties = $heimdall->config->{gnomex}->{properties};
 my $gnomex_jar = $heimdall->config->{gnomex}->{gnomex_jar};
-my $repos      = $heimdall->config->{gnomex}->{analysisPath};
+##my $repos      = $heimdall->config->{gnomex}->{analysisPath};
 
 ## using DBI due to conflict with ugp_db
 my $gnomex = DBI->connect( 'dbi:mysql:dbname=gnomex;host=155.101.15.87',
@@ -113,7 +112,7 @@ task "create_gnomex_analysis",
             where => "Project=$add",
           };
         Rex::Logger::info(
-            "Genomex_Analysis_ID: $createdAnalysis{$add} updated for project $add",
+"Genomex_Analysis_ID: $createdAnalysis{$add} updated for project $add",
             'warn'
         );
     }

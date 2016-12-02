@@ -9,7 +9,8 @@ use IPC::Cmd 'run';
 require UGP::Tasks;
 require CHPC::Tasks;
 
-# set location of config and sqlite file.
+## set location of config and sqlite file.
+## update on project move.
 BEGIN {
     $ENV{heimdall_config} =
         '/uufs/chpc.utah.edu/common/home/u0413537/Heimdall/heimdall.cfg';
