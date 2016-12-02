@@ -29,18 +29,38 @@ my $longevity = $heimdall->config->{backgrounds}->{longevity};
 
 desc "Create bash jobs for all Process data projects.
 
-Additional option:
-    --background=<longevity or thousand> [default thousand]
-    --region=<WGS or WES> [default WES]
-";
-task "Nantomics_process_data_dir", sub {
-    my $command_line = shift;
-    my $process_dir  = $heimdall->config->{nantomics_transfer}->{process};
+Required option:
+    --sequence_center=<> [nantomics, washu, other]
 
+Additional option:
+    --background=<longevity or thousand> [default: thousand]
+    --region=<WGS or WES> [default: WES]
+    --sequence_center=<> [nantomics, washu, other]
+";
+task "Process_all_data_dir", sub {
+    my $command_line = shift;
+
+    ## set up correct transfer space and open
+    my $process_dir;
+    my $sequence_center = $command_line->{sequence_center};
+    if ( !$sequence_center ) {
+        Rex::Logger::info( "Sequence center not specified.", "error" );
+    }
+
+    if ( $sequence_center eq 'nantomics' ) {
+        $process_dir = $heimdall->config->{nantomics_transfer}->{process};
+    }
+    elsif ( $sequence_center eq 'washu' ) {
+        $process_dir = $heimdall->config->{washu_transfer}->{process};
+    }
+    elsif ( $sequence_center eq 'other' ) {
+        $process_dir = $heimdall->config->{other_transfer}->{process};
+    }
     opendir( my $PROC, $process_dir )
       or Rex::Logger::info( "Can't open directory $process_dir, exiting.",
         'error' );
 
+    ## set up config files
     foreach my $project ( readdir $PROC ) {
         chomp $project;
         next if ( $project eq '.' || $project eq '..');
@@ -82,8 +102,9 @@ task "Nantomics_process_data_dir", sub {
         ## make tmp processing directory and ln to tmp.
         my $tmp_dir = "$process_dir/$project/processing_tmp";
         if ( -e $tmp_dir ) {
-            Rex::Logger::info( "processing_tmp directory exist skipping.",
-                "error" );
+            Rex::Logger::info( "processing_tmp directory $tmp_dir exist skipping.",
+                "warn" );
+            next;
         }
 
         mkdir "$tmp_dir",
@@ -136,37 +157,39 @@ task "Nantomics_process_data_dir", sub {
         my $shell = <<"EOM";
 #!/bin/bash
 
+module load ucgd_modules
+
 cd $tmp_dir
 
 ## update trello
-/uufs/chpc.utah.edu/common/home/u0413537/MasterVersions/FQF/bin/TrelloTalk -project $project -list data_process_active -action pipeline_start
+TrelloTalk -project $project -list data_process_active -action pipeline_start
 
 ## toGVCF
-/uufs/chpc.utah.edu/common/home/u0413537/MasterVersions/FQF/bin/FQF -cfg $updated_cfgs[0] -ql 50 --run
+FQF -cfg $updated_cfgs[0] -ql 50 --run
 
 ## update trello
-/uufs/chpc.utah.edu/common/home/u0413537/MasterVersions/FQF/bin/TrelloTalk -project $project -list data_process_active -action bams_complete
-/uufs/chpc.utah.edu/common/home/u0413537/MasterVersions/FQF/bin/TrelloTalk -project $project -list data_process_active -action gvcf_complete
+TrelloTalk -project $project -list data_process_active -action bams_complete
+TrelloTalk -project $project -list data_process_active -action gvcf_complete
 
 ## Genotype
-/uufs/chpc.utah.edu/common/home/u0413537/MasterVersions/FQF/bin/FQF -cfg $updated_cfgs[2] -ql 50 --run
+FQF -cfg $updated_cfgs[2] -ql 50 --run
 
 ## update trello
-/uufs/chpc.utah.edu/common/home/u0413537/MasterVersions/FQF/bin/TrelloTalk -project $project -list data_process_active -action vcf_complete
+TrelloTalk -project $project -list data_process_active -action vcf_complete
 
 ## qc
-/uufs/chpc.utah.edu/common/home/u0413537/MasterVersions/FQF/bin/FQF -cfg $updated_cfgs[1] -ql 50 --run & 
-/uufs/chpc.utah.edu/common/home/u0413537/MasterVersions/FQF/bin/FQF -cfg $updated_cfgs[3] -ql 50 --run & 
+FQF -cfg $updated_cfgs[1] -ql 50 --run & 
+FQF -cfg $updated_cfgs[3] -ql 50 --run & 
 
 ## update trello
-/uufs/chpc.utah.edu/common/home/u0413537/MasterVersions/FQF/bin/TrelloTalk -project $project -list data_process_active -action qc_complete
-/uufs/chpc.utah.edu/common/home/u0413537/MasterVersions/FQF/bin/TrelloTalk -project $project -list data_process_active -action wham_complete
-/uufs/chpc.utah.edu/common/home/u0413537/MasterVersions/FQF/bin/TrelloTalk -project $project -list data_process_active -action pipeline_finished
+TrelloTalk -project $project -list data_process_active -action qc_complete
+TrelloTalk -project $project -list data_process_active -action wham_complete
+TrelloTalk -project $project -list data_process_active -action pipeline_finished
 
 wait
 
 EOM
-        my $bash_file = "process/FQFrun-$project.sh";
+        my $bash_file = "process/$project.sh";
 
         #my $bash_file = "$tmp_dir/FQFrun-$project.sh";
         open( my $OUT, '>', $bash_file );
@@ -183,17 +206,37 @@ EOM
 ## -------------------------------------------------- ##
 
 desc "Create bash jobs individual Process data project.
+
 Required option:
     --project=<UGP project name>
+    --sequence_center=<> [nantomics, washu, other]
 
 Additional option:
     --background=<longevity or thousand> [default thousand]
     --region=<WGS or WES> [default WES]
-
 ";
-task "Nantomics_process_data", sub {
+task "Process_individual_project", sub {
     my $command_line = shift;
-    my $process_dir  = $heimdall->config->{nantomics_transfer}->{process};
+
+    ## set up correct transfer space and open
+    my $process_dir;
+    my $sequence_center = $command_line->{sequence_center};
+    if ( !$sequence_center ) {
+        Rex::Logger::info( "Sequence center not specified.", "error" );
+    }
+
+    if ( $sequence_center eq 'nantomics' ) {
+        $process_dir = $heimdall->config->{nantomics_transfer}->{process};
+    }
+    elsif ( $sequence_center eq 'washu' ) {
+        $process_dir = $heimdall->config->{washu_transfer}->{process};
+    }
+    elsif ( $sequence_center eq 'other' ) {
+        $process_dir = $heimdall->config->{other_transfer}->{process};
+    }
+    opendir( my $PROC, $process_dir )
+      or Rex::Logger::info( "Can't open directory $process_dir, exiting.",
+        'error' );
 
     ## get project from command line.
     my $project = $command_line->{project};
@@ -290,38 +333,40 @@ task "Nantomics_process_data", sub {
     my $shell = <<"EOM";
 #!/bin/bash
 
+module load ucgd_modules
+
 cd $tmp_dir
 
 ## update trello
-/uufs/chpc.utah.edu/common/home/u0413537/MasterVersions/FQF/bin/TrelloTalk -project $project -list data_process_active -action pipeline_start
+TrelloTalk -project $project -list data_process_active -action pipeline_start
 
 ## toGVCF
-/uufs/chpc.utah.edu/common/home/u0413537/MasterVersions/FQF/bin/FQF -cfg $updated_cfgs[0] -ql 50 --run
+FQF -cfg $updated_cfgs[0] -ql 50 --run
 
 ## update trello
-/uufs/chpc.utah.edu/common/home/u0413537/MasterVersions/FQF/bin/TrelloTalk -project $project -list data_process_active -action bams_complete
-/uufs/chpc.utah.edu/common/home/u0413537/MasterVersions/FQF/bin/TrelloTalk -project $project -list data_process_active -action gvcf_complete
+TrelloTalk -project $project -list data_process_active -action bams_complete
+TrelloTalk -project $project -list data_process_active -action gvcf_complete
 
 ## Genotype
-/uufs/chpc.utah.edu/common/home/u0413537/MasterVersions/FQF/bin/FQF -cfg $updated_cfgs[2] -ql 50 --run
+FQF -cfg $updated_cfgs[2] -ql 50 --run
 
 ## update trello
-/uufs/chpc.utah.edu/common/home/u0413537/MasterVersions/FQF/bin/TrelloTalk -project $project -list data_process_active -action vcf_complete
+TrelloTalk -project $project -list data_process_active -action vcf_complete
 
 ## qc
-/uufs/chpc.utah.edu/common/home/u0413537/MasterVersions/FQF/bin/FQF -cfg $updated_cfgs[1] -ql 50 --run & 
-/uufs/chpc.utah.edu/common/home/u0413537/MasterVersions/FQF/bin/FQF -cfg $updated_cfgs[3] -ql 50 --run & 
+FQF -cfg $updated_cfgs[1] -ql 50 --run & 
+FQF -cfg $updated_cfgs[3] -ql 50 --run & 
 
 ## update trello
-/uufs/chpc.utah.edu/common/home/u0413537/MasterVersions/FQF/bin/TrelloTalk -project $project -list data_process_active -action qc_complete
-/uufs/chpc.utah.edu/common/home/u0413537/MasterVersions/FQF/bin/TrelloTalk -project $project -list data_process_active -action wham_complete
-/uufs/chpc.utah.edu/common/home/u0413537/MasterVersions/FQF/bin/TrelloTalk -project $project -list data_process_active -action pipeline_finished
+TrelloTalk -project $project -list data_process_active -action qc_complete
+TrelloTalk -project $project -list data_process_active -action wham_complete
+TrelloTalk -project $project -list data_process_active -action pipeline_finished
 
 wait
 
 EOM
 
-    my $bash_file = "process/FQFrun-$project.sh";
+    my $bash_file = "process/$project.sh";
     #my $bash_file = "$tmp_dir/FQFrun-$project.sh";
     open( my $OUT, '>', $bash_file );
     chmod 755, $bash_file;
@@ -336,7 +381,6 @@ desc "Will run all bash jobs in process dir
 
 Additional option:
     --cpu=<INT> [default 5]
-
 ";
 task "Process_bash_jobs", sub {
     my $command_line = shift;
@@ -350,7 +394,7 @@ task "Process_bash_jobs", sub {
         'error' );
 
     foreach my $sh ( readdir $DIR ) {
-        next if ( $sh eq '.' || $sh eq '..' );
+        next if ( $sh eq '.' || $sh eq '..' || $sh !~ /\.sh$/ );
 
         $pm->start and next;
 
