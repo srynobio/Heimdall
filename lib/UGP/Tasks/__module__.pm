@@ -112,7 +112,7 @@ task "create_gnomex_analysis",
             where => "Project=$add",
           };
         Rex::Logger::info(
-"Genomex_Analysis_ID: $createdAnalysis{$add} updated for project $add",
+            "Genomex_Analysis_ID: $createdAnalysis{$add} updated for project $add",
             'warn'
         );
     }

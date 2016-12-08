@@ -145,14 +145,14 @@ no_ssh task "create_individuals_files",
                 $FH->write("$out->{id}\n");
             }
             Rex::Logger::info(
-"Updating or creating individuals file for $pep project in $project_path.",
+                "Updating or creating individuals file for $pep project in $project_path.",
                 "warn"
             );
             $FH->close;
         }
         else {
             Rex::Logger::info(
-"Can not create individual file for $pep project in $project_path",
+                "Can not create individual file for $pep project in $project_path",
                 'warn'
             );
         }

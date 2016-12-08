@@ -6,6 +6,7 @@ set connection  => "SSH";
 
 use Parallel::ForkManager;
 use IPC::Cmd 'run';
+use File::Copy;
 require UGP::Tasks;
 require CHPC::Tasks;
 
@@ -113,7 +114,7 @@ task "Process_all_data_dir", sub {
           group => "ucgd";
 
         if ( !-e $tmp_dir ) {
-            Rex::Logger::info( "Could not make tmp dir here: $tmp_dir", 'error');
+            Rex::Logger::info( "Could not make tmp dir here: $tmp_dir", 'warn');
         }
 
         ## symlink the bam files to tmp.
@@ -141,8 +142,7 @@ task "Process_all_data_dir", sub {
             my $fqf_cmd = sprintf(
                 "perl -p -i -e 's|^fqf_id:|fqf_id:$fqf_id|' $tmp_dir/$c_file");
             my $back_cmd = sprintf(
-                "perl -p -i -e 's|^backgrounds:|backgrounds:$background|' $tmp_dir/$c_file"
-            );
+                "perl -p -i -e 's|^backgrounds:|backgrounds:$background|' $tmp_dir/$c_file");
             my $region_cmd = sprintf(
                 "perl -p -i -e 's|^region:|region:$region|' $tmp_dir/$c_file");
 
@@ -189,20 +189,17 @@ TrelloTalk -project $project -list data_process_active -action pipeline_finished
 
 wait
 
+echo "$project done processing"
+
 EOM
         my $bash_file = "process/$project.sh";
-
-        #my $bash_file = "$tmp_dir/FQFrun-$project.sh";
         open( my $OUT, '>', $bash_file );
         chmod 755, $bash_file;
 
         say $OUT $shell;
         close $OUT;
     }
-
 };
-
-
 
 ## -------------------------------------------------- ##
 
@@ -365,10 +362,11 @@ TrelloTalk -project $project -list data_process_active -action pipeline_finished
 
 wait
 
+echo "$project done processing"
+
 EOM
 
     my $bash_file = "process/$project.sh";
-    #my $bash_file = "$tmp_dir/FQFrun-$project.sh";
     open( my $OUT, '>', $bash_file );
     chmod 755, $bash_file;
 
@@ -407,6 +405,7 @@ task "Process_bash_jobs", sub {
         if ($success) {
             say "cmd completed: $cmd";
             map { say "Buffer: $_" } @$full_buf;
+            move( "$process_dir/$sh", "$process_dir/complete" );
         }
         else {
             say "error results: $error_message";
