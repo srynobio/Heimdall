@@ -61,6 +61,8 @@ task "create_gnomex_analysis",
     ## delete what is already created.
     while ( my $row = $gnomex_analysis->fetchrow_hashref ) {
         my $done_project = $row->{name};
+        $done_project =~ s|\s+$||g;
+        $done_project =~ s|^\s+||g;
         if ( $project_lookup{$done_project} ) {
             delete $project_lookup{$done_project};
         }
