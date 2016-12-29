@@ -6,25 +6,24 @@
 
 [main]
 ## Where to look on UGP or CHPC.
-chpc_home:/uufs/chpc.utah.edu/common/home/u0413537/Heimdall
+###chpc_home:/uufs/chpc.utah.edu/common/home/u0413537/Heimdall
 
 [log_file]
 file: /home/srynearson/Heimdall/Heimdall.run.log
 
-[rsync]
-#lustre_rsync: /scratch/ucgd/lustre/Repository
-#islion_rsync: /uufs/chpc.utah.edu/common/home/ucgdstor/Repository
+#[repository]
+#genomex_analysis: /scratch/ucgd/lustre/ugpuser/Repository/AnalysisData
 
-[repository]
-genomex_analysis: /scratch/ucgd/lustre/ugpuser/Repository/AnalysisData
+[docs]
+directory_doc:/uufs/chpc.utah.edu/common/home/u0413537/Heimdall/docs/Directory-Overview.html
 
 [gnomex]
 ## path to required gnomex data on ugp
 gnomex_jar:/home/srynearson/GNomEx_Tools/gnomex_client.jar
 properties:/home/srynearson/GNomEx_Tools/properties
-analysisPath:/scratch/ucgd/lustre/ugpuser/Repository/AnalysisData/2014
-analysisPath:/scratch/ucgd/lustre/ugpuser/Repository/AnalysisData/2015
-analysisPath:/scratch/ucgd/lustre/ugpuser/Repository/AnalysisData/2016
+#analysisPath:/scratch/ucgd/lustre/ugpuser/Repository/AnalysisData/2014
+#analysisPath:/scratch/ucgd/lustre/ugpuser/Repository/AnalysisData/2015
+#analysisPath:/scratch/ucgd/lustre/ugpuser/Repository/AnalysisData/2016
 
 [config_files]
 cfg:/uufs/chpc.utah.edu/common/home/u0413537/Heimdall/configs

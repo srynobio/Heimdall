@@ -37,6 +37,9 @@ no_ssh task "generate_new_projects",
   group => "chpc",
   sub {
 
+    ## get directory doc file
+    my $dir_docs = $heimdall->config->{docs}->{directory_doc};
+
     ## get all Projects in ugp_db.
     ## and create lookup table.
     my @projects = db select => {
@@ -85,6 +88,9 @@ no_ssh task "generate_new_projects",
         my $ugp_path = "$new_path/UGP";
         make_path($ugp_path);
 
+        ## copy directory overview to each new project
+        copy( $dir_docs, $new_path );
+
         ## add external data
         my $exdata_path = "$new_path/ExternalData";
         make_path($exdata_path);
@@ -94,7 +100,7 @@ no_ssh task "generate_new_projects",
             "warn" );
         make_path( "$ugp_path/Data/Primary_Data", "$ugp_path/Analysis", );
     }
-  };
+};
 
 ## -------------------------------------------------- ##
 
