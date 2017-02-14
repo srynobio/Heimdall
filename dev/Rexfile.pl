@@ -168,6 +168,9 @@ TrelloTalk -project $project -list data_process_active -action pipeline_start
 ## toGVCF
 FQF -cfg $updated_cfgs[0] -ql 50 --run
 
+## checkpoint
+read -p "GVCFs created, press [Enter] to continue..."
+
 ## update trello
 TrelloTalk -project $project -list data_process_active -action bams_complete
 TrelloTalk -project $project -list data_process_active -action gvcf_complete
@@ -175,12 +178,18 @@ TrelloTalk -project $project -list data_process_active -action gvcf_complete
 ## Genotype
 FQF -cfg $updated_cfgs[2] -ql 50 --run
 
+## checkpoint
+read -p "Genotyping done, press [Enter] to continue..."
+
 ## update trello
 TrelloTalk -project $project -list data_process_active -action vcf_complete
 
 ## qc
 FQF -cfg $updated_cfgs[1] -ql 50 --run & 
 FQF -cfg $updated_cfgs[3] -ql 50 --run & 
+
+## checkpoint
+read -p "QC and WHAM steps done, press [Enter] to continue..."
 
 ## update trello
 TrelloTalk -project $project -list data_process_active -action qc_complete
@@ -341,6 +350,9 @@ TrelloTalk -project $project -list data_process_active -action pipeline_start
 ## toGVCF
 FQF -cfg $updated_cfgs[0] -ql 50 --run
 
+## checkpoint
+read -p "GVCFs created, press [Enter] to continue..."
+
 ## update trello
 TrelloTalk -project $project -list data_process_active -action bams_complete
 TrelloTalk -project $project -list data_process_active -action gvcf_complete
@@ -348,12 +360,18 @@ TrelloTalk -project $project -list data_process_active -action gvcf_complete
 ## Genotype
 FQF -cfg $updated_cfgs[2] -ql 50 --run
 
+## checkpoint
+read -p "Genotyping done, press [Enter] to continue..."
+
 ## update trello
 TrelloTalk -project $project -list data_process_active -action vcf_complete
 
 ## qc
 FQF -cfg $updated_cfgs[1] -ql 50 --run & 
 FQF -cfg $updated_cfgs[3] -ql 50 --run & 
+
+## checkpoint
+read -p "QC and WHAM steps done, press [Enter] to continue...
 
 ## update trello
 TrelloTalk -project $project -list data_process_active -action qc_complete

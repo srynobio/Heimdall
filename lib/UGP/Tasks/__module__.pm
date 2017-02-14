@@ -22,11 +22,13 @@ my $heimdall = Heimdall->new( config_file => $ENV{heimdall_config} );
 ## path to file on ugp.chpc
 my $properties = $heimdall->config->{gnomex}->{properties};
 my $gnomex_jar = $heimdall->config->{gnomex}->{gnomex_jar};
-##my $repos      = $heimdall->config->{gnomex}->{analysisPath};
 
 ## using DBI due to conflict with ugp_db
-my $gnomex = DBI->connect( 'dbi:mysql:dbname=gnomex;host=155.101.15.87',
-    'srynearson', 'iceJihif17&' );
+my $gnomex = DBI->connect( 
+    'dbi:mysql:dbname=gnomex;host=155.101.15.87',
+    'srynearson', 
+    'iceJihif17&'
+);
 
 ## set up ugp_db
 use Rex::Commands::DB {
@@ -71,6 +73,7 @@ task "create_gnomex_analysis",
     my %createdAnalysis;
     foreach my $create (@ugp_db_projects) {
         my $proj_name = $create->{Project};
+
         if ( $project_lookup{$proj_name} ) {
             my $firstName = $create->{PI_First_Name};
             my $lastName  = $create->{PI_Last_Name};
@@ -79,44 +82,24 @@ task "create_gnomex_analysis",
                 "java -classpath %s hci.gnomex.httpclient.CreateAnalysisMain "
                   . "-properties %s -server ugp.chpc.utah.edu "
                   . "-name \"%s\" -lab \"%s\" -folderName \"%s\" -organism \"Human\" "
-                  . "-genomeBuild human_g1k_v37 -analysisType \"UGP Analysis\" -analysisProtocal \"UGP\" ",
-                $gnomex_jar, $properties, $proj_name, $lab, $proj_name );
+                  . "-genomeBuild human_g1k_v37 -analysisType \"UGP Analysis\" -analysisProtocal \"UGP\"",
+                $gnomex_jar, $properties, $proj_name, $lab, $proj_name, );
 
-            ## create analysis in UGP-GNomEx.
-            my $createAnalysis = run $cmd;
-            if ( !$createAnalysis ) {
-                Rex::Logger::info( "Analysis for $proj_name was not created.",
+            ## run the command on ugp.
+            my $result = run "$cmd";
+
+            if ( !$result ) {
+                Rex::Logger::info( "Command $cmd could not be ran remotely.",
                     'warn' );
-                Rex::Logger::info( "Command which could not be ran: $cmd",
-                    'warn' );
-                next;
-            }
-            else {
-                Rex::Logger::info( "Analysis created for $proj_name.", 'warn' );
             }
 
             ## parse xml retun and add analysis to ugp_db.
-            my $xml           = XMLin($createAnalysis);
+            my $xml           = XMLin($result);
             my $analysis_path = $xml->{filePath};
             my @pathdata      = split /\//, $analysis_path;
 
             $createdAnalysis{$proj_name} = $pathdata[-1];
         }
-    }
-
-    ## add newly created analysis to ugp_db
-    foreach my $add ( keys %createdAnalysis ) {
-
-        db
-          update => "Projects",
-          {
-            set   => { Genomex_Analysis_ID => $createdAnalysis{$add}, },
-            where => "Project=$add",
-          };
-        Rex::Logger::info(
-            "Genomex_Analysis_ID: $createdAnalysis{$add} updated for project $add",
-            'warn'
-        );
     }
   };
 
@@ -157,7 +140,7 @@ task "check_gnomex_ugpdb_user_names",
         my ( $f_name, $l_name ) = split /:/, $need;
         Rex::Logger::info( "Missing user from ugp_db $need", 'warn' );
     }
-  };
+};
 
 ## -------------------------------------------------- ##
 
