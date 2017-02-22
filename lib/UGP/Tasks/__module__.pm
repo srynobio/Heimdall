@@ -12,7 +12,7 @@ use XML::Simple;
 BEGIN {
     $ENV{heimdall_config} =
         '/uufs/chpc.utah.edu/common/home/u0413537/Heimdall/heimdall.cfg';
-    $ENV{sqlite_file} =
+    $ENV{sqlite_file} = 
         '/scratch/ucgd/lustre/ugpuser/apps/kingspeak.peaks/ucgd_utils/trunk/data/UGP_DB.db';
 }
 
@@ -24,10 +24,8 @@ my $properties = $heimdall->config->{gnomex}->{properties};
 my $gnomex_jar = $heimdall->config->{gnomex}->{gnomex_jar};
 
 ## using DBI due to conflict with ugp_db
-my $gnomex = DBI->connect( 
-    'dbi:mysql:dbname=gnomex;host=155.101.15.87',
-    'srynearson', 
-    'iceJihif17&'
+my $gnomex = DBI->connect( 'dbi:mysql:dbname=gnomex;host=155.101.15.87',
+    'srynearson', 'iceJihif17&' 
 );
 
 ## set up ugp_db
@@ -86,19 +84,21 @@ task "create_gnomex_analysis",
                 $gnomex_jar, $properties, $proj_name, $lab, $proj_name, );
 
             ## run the command on ugp.
-            my $result = run "$cmd";
+            say $cmd;
 
-            if ( !$result ) {
-                Rex::Logger::info( "Command $cmd could not be ran remotely.",
-                    'warn' );
-            }
-
-            ## parse xml retun and add analysis to ugp_db.
-            my $xml           = XMLin($result);
-            my $analysis_path = $xml->{filePath};
-            my @pathdata      = split /\//, $analysis_path;
-
-            $createdAnalysis{$proj_name} = $pathdata[-1];
+#            my $result = run "$cmd";
+#
+#            if ( !$result ) {
+#                Rex::Logger::info( "Command $cmd could not be ran remotely.",
+#                    'warn' );
+#            }
+#
+#            ## parse xml retun and add analysis to ugp_db.
+#            my $xml           = XMLin($result);
+#            my $analysis_path = $xml->{filePath};
+#            my @pathdata      = split /\//, $analysis_path;
+#
+#            $createdAnalysis{$proj_name} = $pathdata[-1];
         }
     }
   };
@@ -140,7 +140,7 @@ task "check_gnomex_ugpdb_user_names",
         my ( $f_name, $l_name ) = split /:/, $need;
         Rex::Logger::info( "Missing user from ugp_db $need", 'warn' );
     }
-};
+  };
 
 ## -------------------------------------------------- ##
 

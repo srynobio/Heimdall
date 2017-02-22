@@ -104,9 +104,7 @@ no_ssh task "generate_new_projects",
 
 ## -------------------------------------------------- ##
 
-desc
-  "Will check ugp_db and create an individuals.txt file foreach known project.";
-
+desc "Will check ugp_db and create an individuals.txt file foreach known project.";
 no_ssh task "create_individuals_files",
   group => "chpc",
   sub {
@@ -163,7 +161,7 @@ no_ssh task "create_individuals_files",
             );
         }
     }
-  };
+};
 
 ## -------------------------------------------------- ##
 
