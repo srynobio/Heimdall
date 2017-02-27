@@ -4,11 +4,8 @@ use feature 'say';
 logging to_file => "Heimdall.run.log";
 set connection  => "SSH";
 
-use Parallel::ForkManager;
-use IPC::Cmd 'run';
 use File::Copy;
-require UGP::Tasks;
-require CHPC::Tasks;
+use Heimdall;
 
 ## set location of config and sqlite file.
 ## update on project move.
@@ -22,193 +19,98 @@ BEGIN {
 ## make object for record keeping.
 my $heimdall = Heimdall->new( config_file => $ENV{heimdall_config} );
 
-## master dir of config files.
-my $configs   = $heimdall->config->{config_files}->{cfg};
-my $thousand  = $heimdall->config->{backgrounds}->{thousand};
-my $longevity = $heimdall->config->{backgrounds}->{longevity};
+## set data from config file.
+my $configs    = $heimdall->config->{config_files}->{cfg};
+my $thousand   = $heimdall->config->{backgrounds}->{thousand};
+my $longevity  = $heimdall->config->{backgrounds}->{longevity};
+my $properties = $heimdall->config->{gnomex}->{properties};
+my $gnomex_jar = $heimdall->config->{gnomex}->{gnomex_jar};
 
 ## -------------------------------------------------- ##
+## Create connections to DBs
+## -------------------------------------------------- ##
 
-desc "Create bash jobs for all Process data projects.
+## using DBI due to conflict with ugp_db
+my $gnomex = DBI->connect( 'dbi:mysql:dbname=gnomex;host=155.101.15.87',
+    'srynearson', 'iceJihif17&' 
+);
 
-Required option:
-    --sequence_center=<> [nantomics, washu, other]
-
-Additional option:
-    --background=<longevity or thousand> [default: thousand]
-    --region=<WGS or WES> [default: WES]
-    --sequence_center=<> [nantomics, washu, other]
-";
-task "Process_all_data_dir", sub {
-    my $command_line = shift;
-
-    ## set up correct transfer space and open
-    my $process_dir;
-    my $sequence_center = $command_line->{sequence_center};
-    if ( !$sequence_center ) {
-        Rex::Logger::info( "Sequence center not specified.", "error" );
-    }
-
-    if ( $sequence_center eq 'nantomics' ) {
-        $process_dir = $heimdall->config->{nantomics_transfer}->{process};
-    }
-    elsif ( $sequence_center eq 'washu' ) {
-        $process_dir = $heimdall->config->{washu_transfer}->{process};
-    }
-    elsif ( $sequence_center eq 'other' ) {
-        $process_dir = $heimdall->config->{other_transfer}->{process};
-    }
-    opendir( my $PROC, $process_dir )
-      or Rex::Logger::info( "Can't open directory $process_dir, exiting.",
-        'error' );
-
-    ## set up config files
-    foreach my $project ( readdir $PROC ) {
-        chomp $project;
-        next if ( $project eq '.' || $project eq '..');
-        next if (is_file($project));
-
-        ## set up the background location.
-        my $background;
-        my $background_name;
-        my $command_background = $command_line->{background};
-        if ( $command_line->{background} =~ /longevity/i ) {
-            $background      = $longevity;
-            $background_name = 'Longevity';
-        }
-        else {
-            $background      = $thousand;
-            $background_name = '1000Genomes';
-        }
-
-        ## set region file to use.
-        my $region;
-        if ( $command_line->{region} =~ /WGS/i ) {
-            $region = $heimdall->config->{region_files}->{WGS};
-        }
-        else {
-            $region = $heimdall->config->{region_files}->{WES};
-        }
-
-        ## data path.
-        my $primary_data = "$process_dir/$project/UGP/Data/Primary_Data/";
-
-        ## check if file exist.
-        my @bam_files = glob "$primary_data/*bam";
-           
-        if ( !@bam_files ) {
-            Rex::Logger::info( "No BAM file found in $primary_data directory", 'warn');
-            next;
-        }
-
-        ## make tmp processing directory and ln to tmp.
-        my $tmp_dir = "$process_dir/$project/processing_tmp";
-        if ( -e $tmp_dir ) {
-            Rex::Logger::info( "processing_tmp directory $tmp_dir exist skipping.",
-                "warn" );
-            next;
-        }
-
-        mkdir "$tmp_dir",
-          owner => "u0413537",
-          group => "ucgd";
-
-        if ( !-e $tmp_dir ) {
-            Rex::Logger::info( "Could not make tmp dir here: $tmp_dir", 'warn');
-        }
-
-        ## symlink the bam files to tmp.
-        foreach my $bam (@bam_files) {
-            chomp $bam;
-            ln( $bam, $tmp_dir );
-        }
-
-        ## updating config file for project.
-        Rex::Logger::info("Copying and update config file for $project.");
-
-        ## fqf_id
-        my $epoch = time;
-        my $fqf_id =
-          'FQF-1.2.1_' . $project . '_' . $background_name . '_' . $epoch;
-
-        my @updated_cfgs;
-        opendir( my $CFG, $configs );
-        foreach my $c_file ( readdir $CFG ) {
-            next if ( $c_file !~ /cfg$/ );
-            cp( "$configs/$c_file", $tmp_dir );
-
-            my $data_cmd = sprintf(
-                "perl -p -i -e 's|^data:|data:$tmp_dir|' $tmp_dir/$c_file");
-            my $fqf_cmd = sprintf(
-                "perl -p -i -e 's|^fqf_id:|fqf_id:$fqf_id|' $tmp_dir/$c_file");
-            my $back_cmd = sprintf(
-                "perl -p -i -e 's|^backgrounds:|backgrounds:$background|' $tmp_dir/$c_file");
-            my $region_cmd = sprintf(
-                "perl -p -i -e 's|^region:|region:$region|' $tmp_dir/$c_file");
-
-            # run commands.
-            `$data_cmd`;
-            `$fqf_cmd`;
-            `$back_cmd`;
-            `$region_cmd`;
-
-            push @updated_cfgs, "$tmp_dir/$c_file";
-        }
-
-        my $shell = <<"EOM";
-#!/bin/bash
-
-module load ucgd_modules
-
-cd $tmp_dir
-
-## update trello
-TrelloTalk -project $project -list data_process_active -action pipeline_start
-
-## toGVCF
-FQF -cfg $updated_cfgs[0] -ql 50 --run
-
-## checkpoint
-read -p "GVCFs created, press [Enter] to continue..."
-
-## update trello
-TrelloTalk -project $project -list data_process_active -action bams_complete
-TrelloTalk -project $project -list data_process_active -action gvcf_complete
-
-## Genotype
-FQF -cfg $updated_cfgs[2] -ql 50 --run
-
-## checkpoint
-read -p "Genotyping done, press [Enter] to continue..."
-
-## update trello
-TrelloTalk -project $project -list data_process_active -action vcf_complete
-
-## qc
-FQF -cfg $updated_cfgs[1] -ql 50 --run & 
-FQF -cfg $updated_cfgs[3] -ql 50 --run & 
-
-## checkpoint
-read -p "QC and WHAM steps done, press [Enter] to continue..."
-
-## update trello
-TrelloTalk -project $project -list data_process_active -action qc_complete
-TrelloTalk -project $project -list data_process_active -action wham_complete
-TrelloTalk -project $project -list data_process_active -action pipeline_finished
-
-wait
-
-echo "$project done processing"
-
-EOM
-        my $bash_file = "process/$project.sh";
-        open( my $OUT, '>', $bash_file );
-        chmod 755, $bash_file;
-
-        say $OUT $shell;
-        close $OUT;
-    }
+## set connection to ugp_db
+use Rex::Commands::DB {
+    dsn => "dbi:SQLite:dbname=$ENV{sqlite_file}",
+    "", "",
 };
+
+## -------------------------------------------------- ##
+## Tasks 
+## -------------------------------------------------- ##
+
+desc
+  "Will create a UGP-GNomEx analysis for each new project and updated ugp_db.";
+task "create_gnomex_analysis",
+  group => "ugp",
+  sub {
+
+    ## Get project info from ugp_db
+    my @ugp_db_projects = db select => {
+        fields => "Project,PI_First_Name,PI_Last_Name",
+        from   => "Projects",
+    };
+
+    ## make lookup table.
+    my %project_lookup;
+    foreach my $proj (@ugp_db_projects) {
+        $project_lookup{ $proj->{Project} }++;
+    }
+
+    ## Collect data from ugp gnomex db.
+    my $gnomex_analysis = $gnomex->prepare("SELECT name from Analysis");
+    $gnomex_analysis->execute;
+
+    ## delete what is already created.
+    while ( my $row = $gnomex_analysis->fetchrow_hashref ) {
+        my $done_project = $row->{name};
+        $done_project =~ s|\s+$||g;
+        $done_project =~ s|^\s+||g;
+        if ( $project_lookup{$done_project} ) {
+            delete $project_lookup{$done_project};
+        }
+    }
+
+    my %createdAnalysis;
+    foreach my $create (@ugp_db_projects) {
+        my $proj_name = $create->{Project};
+
+        if ( $project_lookup{$proj_name} ) {
+            my $firstName = $create->{PI_First_Name};
+            my $lastName  = $create->{PI_Last_Name};
+            my $lab       = "$lastName, $firstName";
+            my $cmd       = sprintf(
+                "java -classpath %s hci.gnomex.httpclient.CreateAnalysisMain "
+                  . "-properties %s -server ugp.chpc.utah.edu "
+                  . "-name \"%s\" -lab \"%s\" -folderName \"%s\" -organism \"Human\" "
+                  . "-genomeBuild human_g1k_v37 -analysisType \"UGP Analysis\" -analysisProtocal \"UGP\"",
+                $gnomex_jar, $properties, $proj_name, $lab, $proj_name, );
+
+            ## run the command on ugp.
+            say $cmd;
+
+#            my $result = run "$cmd";
+#
+#            if ( !$result ) {
+#                Rex::Logger::info( "Command $cmd could not be ran remotely.",
+#                    'warn' );
+#            }
+#
+#            ## parse xml retun and add analysis to ugp_db.
+#            my $xml           = XMLin($result);
+#            my $analysis_path = $xml->{filePath};
+#            my @pathdata      = split /\//, $analysis_path;
+#
+#            $createdAnalysis{$proj_name} = $pathdata[-1];
+        }
+    }
+  };
 
 ## -------------------------------------------------- ##
 
@@ -222,7 +124,7 @@ Additional option:
     --background=<longevity or thousand> [default thousand]
     --region=<WGS or WES> [default WES]
 ";
-task "Process_individual_project", sub {
+task "Process_project", sub {
     my $command_line = shift;
 
     ## set up correct transfer space and open
@@ -279,11 +181,11 @@ task "Process_individual_project", sub {
     ## make tmp processing directory and ln to tmp.
     my $tmp_dir = "$process_dir/$project/processing_tmp";
     if ( -e $tmp_dir ) {
-        Rex::Logger::info( "processing_tmp directory exist skipping.", "error");
+        Rex::Logger::info( "[WARN] processing_tmp directory exist skipping.", "error");
     }
 
     mkdir "$tmp_dir",
-      owner => "u0413537",
+      owner => $ENV{USER},
       group => "ucgd";
 
     if ( !-e $tmp_dir ) {
@@ -394,46 +296,156 @@ EOM
 
 ## -------------------------------------------------- ##
 
-desc "Will run all bash jobs in process dir
+desc "Will check for new Projects in ugp_db and create project directories.";
+task "create_new_projects",
+  sub {
 
-Additional option:
-    --cpu=<INT> [default 5]
-";
-task "Process_bash_jobs", sub {
-    my $command_line = shift;
+    ## get directory doc file
+    my $dir_docs = $heimdall->config->{docs}->{directory_doc};
 
-    my $cpu = $command_line->{cpu} || 5;
-    my $pm = Parallel::ForkManager->new($cpu);
+    ## get all Projects in ugp_db.
+    ## and create lookup table.
+    my @projects = db select => {
+        fields => "Project,Sequence_Center",
+        from   => "Projects",
+    };
 
-    my $process_dir = $heimdall->{config}->{process_dir}->{process};
-    opendir( my $DIR, $process_dir )
-      or Rex::Logger::info( "Can't open $process_dir directory...exiting.",
-        'error' );
+    my %ugp_lookup;
+    foreach my $ugp (@projects) {
+        my $project_name = $ugp->{Project};
+        $project_name =~ s/^\s+|\s+$|\/$//g;
+        $ugp_lookup{$project_name} =
+          { sequence_center => $ugp->{Sequence_Center}, };
+    }
 
-    foreach my $sh ( readdir $DIR ) {
-        next if ( $sh eq '.' || $sh eq '..' || $sh !~ /\.sh$/ );
+    foreach my $current ( keys %ugp_lookup ) {
 
-        $pm->start and next;
+        my $project_space = $ugp_lookup{$current};
 
-        Rex::Logger::info( "Running shell script $sh, with PID: $$.", 'warn' );
-        my $cmd = "$process_dir/$sh";
-        my ( $success, $error_message, $full_buf, $stdout_buf, $stderr_buf ) =
-          run( command => $cmd, verbose => 0 );
+        ## find right center first.
+        if ( $project_space->{sequence_center} !~
+            /(WashU|Washington|Nantomics)/i )
+        {
+            $project_space->{sequence_center} = 'other';
+        }
 
-        if ($success) {
-            say "cmd completed: $cmd";
-            map { say "Buffer: $_" } @$full_buf;
-            move( "$process_dir/$sh", "$process_dir/complete" );
+        my $master_path = _set_project_path($project_space);
+        my $new_path    = "$master_path/$current";
+
+        ## copy directory overview to each new project every lookup
+        copy( $dir_docs, $new_path );
+
+        ## skip if exists
+        if ( -e $new_path ) {
+            Rex::Logger::info( "[SKIPPING] Directory $new_path exists.",
+                "warn" );
+            next;
+        }
+        make_path( $new_path, { error => \my $err } );
+
+        ## only need to check high level.
+        if (@$err) {
+            Rex::Logger::info(
+                "[NON FATAL ERROR] Error occured making directory $new_path, skipping", "warn" );
+            next;
+        }
+
+        ## add UGP path
+        my $ugp_path = "$new_path/UGP";
+        make_path($ugp_path);
+
+        ## add external data
+        my $exdata_path = "$new_path/ExternalData";
+        make_path($exdata_path);
+
+        ## create the needed directories
+        Rex::Logger::info( "Building needed directories for $current project",
+            "warn" );
+        make_path( "$ugp_path/Data/Primary_Data", "$ugp_path/Analysis", );
+    }
+};
+
+## -------------------------------------------------- ##
+
+desc "Will check ugp_db and create an individuals.txt file foreach known project.";
+task "create_individuals_files", sub {
+    ## ugp_db sample table.
+    my @samples = db select => {
+        fields => "Sample_ID,Project,Sequence_Center",
+        from   => "Samples",
+    };
+
+    my %indiv;
+    foreach my $part (@samples) {
+        my $id     = $part->{Sample_ID};
+        my $p_name = $part->{Project};
+        next if ( !$p_name );
+        next if ( !$id );
+
+        push @{ $indiv{$p_name} },
+          {
+            id              => $part->{Sample_ID},
+            sequence_center => $part->{Sequence_Center},
+          };
+    }
+
+    foreach my $pep ( keys %indiv ) {
+        ## find right center first.
+        my $project_space = $indiv{$pep}[0];
+
+        if ( $project_space->{sequence_center} !~
+            /(WashU|Washington|Nantomics)/i )
+        {
+            $project_space->{sequence_center} = 'other';
+        }
+
+        my $master_path  = _set_project_path($project_space);
+        my $project_path = "$master_path/$pep";
+
+        next if ( !$project_path );
+        my $indivFile = "$pep-individuals.txt";
+        if ( -w -e $project_path ) {
+            my $FH = file_write("$project_path/$indivFile");
+            foreach my $out ( @{ $indiv{$pep} } ) {
+                $FH->write("$out->{id}\n");
+            }
+            Rex::Logger::info(
+                "Updating or creating individuals file for $pep project in $project_path.",
+                "warn"
+            );
+            $FH->close;
         }
         else {
-            say "error results: $error_message";
-            map { say "Error Buffer: $_" } @$full_buf;
+            Rex::Logger::info(
+                "Can not create individual file for $pep project in $project_path",
+                'warn'
+            );
         }
-
-        $pm->finish;
     }
-    $pm->wait_all_children;
 };
+
+## -------------------------------------------------- ##
+## Helper methods 
+## -------------------------------------------------- ##
+
+sub _set_project_path {
+    my $project_space = shift;
+
+    ## get data from config.
+    my $process_dir = $heimdall->config->{process_directories};
+
+    my $master_path;
+    if ( $project_space->{sequence_center} =~ /Nantomics/i ) {
+        $master_path = $process_dir->{process}->[0];
+    }
+    elsif ( $project_space->{sequence_center} =~ /(WashU|Washington)/i ) {
+        $master_path = $process_dir->{process}->[1];
+    }
+    elsif ( $project_space->{sequence_center} =~ /other/i ) {
+        $master_path = $process_dir->{process}->[2];
+    }
+    return $master_path;
+}
 
 ## -------------------------------------------------- ##
 
@@ -443,7 +455,6 @@ sub timestamp {
     return $time;
 }
 
-## -------------------------------------------------- ##
 
 1;
 
