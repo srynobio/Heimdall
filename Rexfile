@@ -4,12 +4,8 @@ use feature 'say';
 logging to_file => "Heimdall.run.log";
 set connection  => "SSH";
 
-use Parallel::ForkManager;
-use IPC::Cmd 'run';
 use File::Copy;
 use Heimdall;
-#require UGP::Tasks;
-#require CHPC::Tasks;
 
 ## set location of config and sqlite file.
 ## update on project move.
@@ -24,11 +20,16 @@ BEGIN {
 my $heimdall = Heimdall->new( config_file => $ENV{heimdall_config} );
 
 ## set data from config file.
-my $configs    = $heimdall->config->{config_files}->{cfg};
-my $thousand   = $heimdall->config->{backgrounds}->{thousand};
-my $longevity  = $heimdall->config->{backgrounds}->{longevity};
-my $properties = $heimdall->config->{gnomex}->{properties};
-my $gnomex_jar = $heimdall->config->{gnomex}->{gnomex_jar};
+my $configs     = $heimdall->config->{config_files}->{cfg};
+my $thousand    = $heimdall->config->{backgrounds}->{thousand};
+my $longevity   = $heimdall->config->{backgrounds}->{longevity};
+my $properties  = $heimdall->config->{gnomex}->{properties};
+my $gnomex_jar  = $heimdall->config->{gnomex}->{gnomex_jar};
+my $process_dir = $heimdall->config->{process_directories};
+my $dir_docs    = $heimdall->config->{docs};
+
+## load ucgd_modules
+system("module load ucgd_modules");
 
 ## -------------------------------------------------- ##
 ## Create connections to DBs
@@ -39,7 +40,6 @@ my $gnomex = DBI->connect( 'dbi:mysql:dbname=gnomex;host=155.101.15.87',
     'srynearson', 'iceJihif17&' 
 );
 
-
 ## set connection to ugp_db
 use Rex::Commands::DB {
     dsn => "dbi:SQLite:dbname=$ENV{sqlite_file}",
@@ -48,6 +48,37 @@ use Rex::Commands::DB {
 
 ## -------------------------------------------------- ##
 ## Tasks 
+## -------------------------------------------------- ##
+
+desc "Update and populate all project with current documents in /docs";
+task "update_docs", sub {
+
+    ## Get project info from ugp_db
+    my @ugp_db_projects = db select => {
+        fields => "Project",
+        from   => "Projects",
+    };
+
+    ## create quick project lookup;
+    my %project_lk;
+    foreach my $return (@ugp_db_projects) {
+        $project_lk{ $return->{Project} }++;
+    }
+
+    foreach my $dir ( @{ $process_dir->{process} } ) {
+        my @proj_dirs     = list_files($dir);
+        my $dir_documents = $dir_docs->{directory_doc};
+
+        foreach my $project (@proj_dirs) {
+            next if ( !$project_lk{$project} );
+            foreach my $docs ( @{$dir_documents} ) {
+                Rex::Logger::info("Updating project: $project with /doc files");
+                copy( "$docs", "$dir/$project" );
+            }
+        }
+    }
+};
+
 ## -------------------------------------------------- ##
 
 desc
@@ -119,46 +150,60 @@ task "create_gnomex_analysis",
 
 ## -------------------------------------------------- ##
 
-desc "Create bash jobs individual Process data project.
-
+desc "Set up FQF per project.
 Required option:
     --project=<UGP project name>
-    --sequence_center=<> [nantomics, washu, other]
-
-Additional option:
-    --background=<longevity or thousand> [default thousand]
-    --region=<WGS or WES> [default WES]
+    --background=<longevity or thousand>
 ";
-task "Process_project", sub {
+task "create_FQF_project", sub {
     my $command_line = shift;
-
-    ## set up correct transfer space and open
-    my $process_dir;
-    my $sequence_center = $command_line->{sequence_center};
-    if ( !$sequence_center ) {
-        Rex::Logger::info( "Sequence center not specified.", "error" );
-    }
-
-    if ( $sequence_center eq 'nantomics' ) {
-        $process_dir = $heimdall->config->{nantomics_transfer}->{process};
-    }
-    elsif ( $sequence_center eq 'washu' ) {
-        $process_dir = $heimdall->config->{washu_transfer}->{process};
-    }
-    elsif ( $sequence_center eq 'other' ) {
-        $process_dir = $heimdall->config->{other_transfer}->{process};
-    }
-    opendir( my $PROC, $process_dir )
-      or Rex::Logger::info( "Can't open directory $process_dir, exiting.",
-        'error' );
 
     ## get project from command line.
     my $project = $command_line->{project};
     if ( !$project ) {
         Rex::Logger::info( "Option not given (--project=[project])", "error" );
     }
-    
+
+    ## Get project info from ugp_db
+    my @ugp_db_samples = db select => {
+        fields => "Project,Sequence_Center,Seq_Design",
+        from   => "Samples",
+    };
+
+    my $seq_design;
+    my $seq_center;
+    foreach my $sample (@ugp_db_samples) {
+        if ( $sample->{Project} eq $project ) {
+            $seq_design = $sample->{Seq_Design};
+            $seq_center = $sample->{Sequence_Center};
+            last;
+        }
+    }
+
+    ## Quick check
+    if ( !$seq_design and $seq_center ) {
+        Rex::Logger::info(
+            "Seq_design and Sequence_Center not found in ugp_db for your project"
+        );
+    }
+
+    ## set up correct transfer space and open
+    my $process_dir;
+    if ( $seq_center eq 'Nantomics' ) {
+        $process_dir = $heimdall->config->{nantomics_transfer}->{process};
+    }
+    elsif ( $seq_center eq 'WashU' ) {
+        $process_dir = $heimdall->config->{washu_transfer}->{process};
+    }
+    elsif ( $seq_center eq 'other' ) {
+        $process_dir = $heimdall->config->{other_transfer}->{process};
+    }
+    opendir( my $PROC, $process_dir )
+      or Rex::Logger::info( "Can't open directory $process_dir, exiting.",
+        'error' );
+
     ## set up the background location.
+    ## once ugp_db is updated to include backround this section will change.
     my $background;
     my $background_name;
     my $command_background = $command_line->{background};
@@ -166,17 +211,17 @@ task "Process_project", sub {
         $background      = $longevity;
         $background_name = 'Longevity';
     }
-    else {
+    elsif ( $command_line->{background} =~ /thousand/i ) {
         $background      = $thousand;
         $background_name = '1000Genomes';
     }
 
     ## set region file to use.
     my $region;
-    if ( $command_line->{region} =~ /WGS/i ) {
+    if ( $seq_design eq 'WGS' ) {
         $region = $heimdall->config->{region_files}->{WGS};
     }
-    else {
+    elsif ( $seq_design eq 'WES' ) {
         $region = $heimdall->config->{region_files}->{WES};
     }
 
@@ -184,17 +229,10 @@ task "Process_project", sub {
     my $primary_data = "$process_dir/$project/UGP/Data/Primary_Data/";
 
     ## make tmp processing directory and ln to tmp.
-    my $tmp_dir = "$process_dir/$project/processing_tmp";
-    if ( -e $tmp_dir ) {
-        Rex::Logger::info( "processing_tmp directory exist skipping.", "error");
-    }
-
-    mkdir "$tmp_dir",
-      owner => $ENV{USER},
-      group => "ucgd";
-
-    if ( !-e $tmp_dir ) {
-        Rex::Logger::info( "Could not make tmp dir here: $tmp_dir", "error" );
+    my $process_project = "$process_dir/$project/UGP";
+    if ( !-e $process_project ) {
+        Rex::Logger::info( "[ERROR] $process_project does not exist!",
+            "error" );
     }
 
     ## check if file exist.
@@ -205,35 +243,29 @@ task "Process_project", sub {
             "error" );
     }
 
-    ## symlink the file to tmp.
-    foreach my $bam (@bam_files) {
-        chomp $bam;
-        ln( $bam, $tmp_dir );
-    }
-
-    ## updating config file for project.
-    Rex::Logger::info("Copying and update config file for $project.");
-
     ## fqf_id
     my $epoch = time;
     my $fqf_id =
-      'FQF-1.2.1_' . $project . '_' . $background_name . '_' . $epoch;
+      'FQF-1.3.3_' . $project . '_' . $background_name . '_' . $epoch;
 
     my @updated_cfgs;
     opendir( my $CFG, $configs );
     foreach my $c_file ( readdir $CFG ) {
         next if ( $c_file !~ /cfg$/ );
-        cp( "$configs/$c_file", $tmp_dir );
+        cp( "$configs/$c_file", $process_project );
 
-        my $data_cmd =
-          sprintf("perl -p -i -e 's|^data:|data:$tmp_dir|' $tmp_dir/$c_file");
+        my $data_cmd = sprintf(
+            "perl -p -i -e 's|^data:|data:$process_project|' $process_project/$c_file"
+        );
         my $fqf_cmd = sprintf(
-            "perl -p -i -e 's|^fqf_id:|fqf_id:$fqf_id|' $tmp_dir/$c_file");
+            "perl -p -i -e 's|^fqf_id:|fqf_id:$fqf_id|' $process_project/$c_file"
+        );
         my $back_cmd = sprintf(
-            "perl -p -i -e 's|^backgrounds:|backgrounds:$background|' $tmp_dir/$c_file"
+            "perl -p -i -e 's|^backgrounds:|backgrounds:$background|' $process_project/$c_file"
         );
         my $region_cmd = sprintf(
-            "perl -p -i -e 's|^region:|region:$region|' $tmp_dir/$c_file" );
+            "perl -p -i -e 's|^region:|region:$region|' $process_project/$c_file"
+        );
 
         # run commands.
         `$data_cmd`;
@@ -241,7 +273,7 @@ task "Process_project", sub {
         `$back_cmd`;
         `$region_cmd`;
 
-        push @updated_cfgs, "$tmp_dir/$c_file";
+        push @updated_cfgs, "$process_project/$c_file";
     }
 
     my $shell = <<"EOM";
@@ -249,41 +281,41 @@ task "Process_project", sub {
 
 module load ucgd_modules
 
-cd $tmp_dir
+cd $process_project
 
 ## update trello
-TrelloTalk -project $project -list data_process_active -action pipeline_start
+TrelloTalk -project $project -action pipeline_start
 
 ## toGVCF
-FQF -cfg $updated_cfgs[0] -ql 50 --run
+FQF -cfg $updated_cfgs[0] --run
 
 ## checkpoint
 read -p "GVCFs created, press [Enter] to continue..."
 
 ## update trello
-TrelloTalk -project $project -list data_process_active -action bams_complete
-TrelloTalk -project $project -list data_process_active -action gvcf_complete
+TrelloTalk -project $project -action bams_complete
+TrelloTalk -project $project -action gvcf_complete
 
 ## Genotype
-FQF -cfg $updated_cfgs[2] -ql 50 --run
+FQF -cfg $updated_cfgs[2] --run
 
 ## checkpoint
 read -p "Genotyping done, press [Enter] to continue..."
 
 ## update trello
-TrelloTalk -project $project -list data_process_active -action vcf_complete
+TrelloTalk -project $project -action vcf_complete
 
 ## qc
-FQF -cfg $updated_cfgs[1] -ql 50 --run & 
-FQF -cfg $updated_cfgs[3] -ql 50 --run & 
+FQF -cfg $updated_cfgs[1] --run
+FQF -cfg $updated_cfgs[3] --run
 
 ## checkpoint
 read -p "QC and WHAM steps done, press [Enter] to continue...
 
 ## update trello
-TrelloTalk -project $project -list data_process_active -action qc_complete
-TrelloTalk -project $project -list data_process_active -action wham_complete
-TrelloTalk -project $project -list data_process_active -action pipeline_finished
+TrelloTalk -project $project -action qc_complete
+TrelloTalk -project $project -action wham_complete
+TrelloTalk -project $project -action pipeline_finished
 
 wait
 
@@ -291,7 +323,7 @@ echo "$project done processing"
 
 EOM
 
-    my $bash_file = "process/$project.sh";
+    my $bash_file = "$process_project/$project.sh";
     open( my $OUT, '>', $bash_file );
     chmod 755, $bash_file;
 
@@ -304,9 +336,6 @@ EOM
 desc "Will check for new Projects in ugp_db and create project directories.";
 task "create_new_projects",
   sub {
-
-    ## get directory doc file
-    my $dir_docs = $heimdall->config->{docs}->{directory_doc};
 
     ## get all Projects in ugp_db.
     ## and create lookup table.
@@ -336,9 +365,6 @@ task "create_new_projects",
 
         my $master_path = _set_project_path($project_space);
         my $new_path    = "$master_path/$current";
-
-        ## copy directory overview to each new project every lookup
-        copy( $dir_docs, $new_path );
 
         ## skip if exists
         if ( -e $new_path ) {
@@ -436,9 +462,7 @@ task "create_individuals_files", sub {
 sub _set_project_path {
     my $project_space = shift;
 
-    ## get data from config.
-    my $process_dir = $heimdall->config->{process_directories};
-
+    ## uses process_dir from above setting config files.
     my $master_path;
     if ( $project_space->{sequence_center} =~ /Nantomics/i ) {
         $master_path = $process_dir->{process}->[0];
@@ -460,6 +484,7 @@ sub timestamp {
     return $time;
 }
 
+## -------------------------------------------------- ##
 
 1;
 
