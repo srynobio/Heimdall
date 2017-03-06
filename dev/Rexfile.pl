@@ -1,11 +1,10 @@
 use Rex -feature => ['1.3'];
 use feature 'say';
+use File::Copy;
+use Heimdall;
 
 logging to_file => "Heimdall.run.log";
 set connection  => "SSH";
-
-use File::Copy;
-use Heimdall;
 
 ## set location of config and sqlite file.
 ## update on project move.
@@ -28,7 +27,7 @@ my $gnomex_jar  = $heimdall->config->{gnomex}->{gnomex_jar};
 my $process_dir = $heimdall->config->{process_directories};
 my $dir_docs    = $heimdall->config->{docs};
 
-## load ucgd_modules
+## make sure ucgd_modules is loaded.
 system("module load ucgd_modules");
 
 ## -------------------------------------------------- ##
@@ -50,7 +49,7 @@ use Rex::Commands::DB {
 ## Tasks 
 ## -------------------------------------------------- ##
 
-desc "Update and populate all project with current documents in /docs";
+desc "Update and populate all projects with current documents in docs/";
 task "update_docs", sub {
 
     ## Get project info from ugp_db
@@ -60,6 +59,7 @@ task "update_docs", sub {
     };
 
     ## create quick project lookup;
+    ## so only know projects are written to.
     my %project_lk;
     foreach my $return (@ugp_db_projects) {
         $project_lk{ $return->{Project} }++;
@@ -183,7 +183,8 @@ task "create_FQF_project", sub {
     ## Quick check
     if ( !$seq_design and $seq_center ) {
         Rex::Logger::info(
-            "Seq_design and Sequence_Center not found in ugp_db for your project"
+            "Seq_design and Sequence_Center not found in ugp_db for your project",
+            "error"
         );
     }
 
@@ -398,7 +399,7 @@ task "create_new_projects",
 
 ## -------------------------------------------------- ##
 
-desc "Will check ugp_db and create an individuals.txt file foreach known project.";
+desc "Will check ugp_db and create an individuals.txt file for each known project.";
 task "create_individuals_files", sub {
     ## ugp_db sample table.
     my @samples = db select => {
