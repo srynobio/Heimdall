@@ -35,9 +35,9 @@ system("module load ucgd_modules");
 ## -------------------------------------------------- ##
 
 ## using DBI due to conflict with ugp_db
-my $gnomex = DBI->connect( 'dbi:mysql:dbname=gnomex;host=155.101.15.87',
-    'srynearson', 'iceJihif17&' 
-);
+my $gnomex = DBI->connect( 
+    'dbi:mysql:dbname=gnomex;host=155.101.15.87',
+    'srynearson', 'iceJihif17&' );
 
 ## set connection to ugp_db
 use Rex::Commands::DB {
