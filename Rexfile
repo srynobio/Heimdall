@@ -1,6 +1,7 @@
 use Rex -feature => ['1.3'];
 use feature 'say';
 use File::Copy;
+use File::Path qw(make_path);
 use Heimdall;
 
 logging to_file => "Heimdall.run.log";
@@ -335,8 +336,7 @@ EOM
 ## -------------------------------------------------- ##
 
 desc "Will check for new Projects in ugp_db and create project directories.";
-task "create_new_projects",
-  sub {
+task "create_new_projects", sub {
 
     ## get all Projects in ugp_db.
     ## and create lookup table.
@@ -378,7 +378,9 @@ task "create_new_projects",
         ## only need to check high level.
         if (@$err) {
             Rex::Logger::info(
-                "[NON FATAL ERROR] Error occured making directory $new_path, skipping", "warn" );
+                "[NON FATAL ERROR] Error occured making directory $new_path, skipping",
+                "warn"
+            );
             next;
         }
 
