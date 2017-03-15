@@ -197,7 +197,7 @@ task "create_FQF_project", sub {
     elsif ( $seq_center eq 'WashU' ) {
         $process_dir = $heimdall->config->{washu_transfer}->{process};
     }
-    elsif ( $seq_center eq 'other' ) {
+    else {
         $process_dir = $heimdall->config->{other_transfer}->{process};
     }
     opendir( my $PROC, $process_dir )
