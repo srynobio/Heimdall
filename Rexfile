@@ -194,7 +194,7 @@ task "create_FQF_project", sub {
     if ( $seq_center eq 'Nantomics' ) {
         $process_dir = $heimdall->config->{nantomics_transfer}->{process};
     }
-    elsif ( $seq_center eq 'WashU' ) {
+    elsif ( $seq_center =~ /(WashU|Washington University)/ ) {
         $process_dir = $heimdall->config->{washu_transfer}->{process};
     }
     else {
@@ -359,8 +359,7 @@ task "create_new_projects", sub {
 
         ## find right center first.
         if ( $project_space->{sequence_center} !~
-            /(WashU|Washington|Nantomics)/i )
-        {
+            /(WashU|Washington|Washington University|Nantomics)/i ) {
             $project_space->{sequence_center} = 'other';
         }
 
