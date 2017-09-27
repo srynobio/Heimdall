@@ -194,7 +194,7 @@ task "create_FQF_project", sub {
     if ( $seq_center eq 'Nantomics' ) {
         $process_dir = $heimdall->config->{nantomics_transfer}->{process};
     }
-    elsif ( $seq_center =~ /(WashU|Washington University)/ ) {
+    elsif ( $seq_center =~ /(WashU|Washington University|University of Washington)/ ) {
         $process_dir = $heimdall->config->{washu_transfer}->{process};
     }
     else {
@@ -248,7 +248,7 @@ task "create_FQF_project", sub {
     ## fqf_id
     my $epoch = time;
     my $fqf_id =
-      'FQF-1.3.3_' . $project . '_' . $background_name . '_' . $epoch;
+      'FQF-1.3.8_' . $project . '_' . $background_name . '_' . $epoch;
 
     my @updated_cfgs;
     opendir( my $CFG, $configs );
