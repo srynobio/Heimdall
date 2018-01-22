@@ -38,7 +38,7 @@ system("module load ucgd_modules");
 ## using DBI due to conflict with ugp_db
 my $gnomex = DBI->connect( 
     'dbi:mysql:dbname=gnomex;host=155.101.15.87',
-    'srynearson', 'iceJihif17&' );
+    'srynearson', '*********' );
 
 ## set connection to ugp_db
 use Rex::Commands::DB {
@@ -131,20 +131,6 @@ task "create_gnomex_analysis",
 
             ## run the command on ugp.
             say $cmd;
-
-#            my $result = run "$cmd";
-#
-#            if ( !$result ) {
-#                Rex::Logger::info( "Command $cmd could not be ran remotely.",
-#                    'warn' );
-#            }
-#
-#            ## parse xml retun and add analysis to ugp_db.
-#            my $xml           = XMLin($result);
-#            my $analysis_path = $xml->{filePath};
-#            my @pathdata      = split /\//, $analysis_path;
-#
-#            $createdAnalysis{$proj_name} = $pathdata[-1];
         }
     }
   };

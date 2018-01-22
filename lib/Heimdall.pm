@@ -79,25 +79,4 @@ sub UPDATE {
 
 ##------------------------------------------------------##
 
-## Carson created
-## Allows you to run cmd as ugpuser
-## not tested.
-
-#sub ugpuser_cmd {
-#    my ($self, $command) = @_;
-#
-#    my $cwd = getcwd;
-#    open( my $TERM, '| sudo /bin/su - ugpuser' ) or return $? = -1;
-#    print $TERM "cd $cwd\n";
-#    print $TERM "$command\n";
-#    print $TERM "exit \$?\n";
-#    close($TERM);
-#
-#    $? = -1 if ( $? >> 8 == 127 || $? >> 8 == 126 );    #can't run
-#
-#    return $?;
-#}
-
-##------------------------------------------------------##
-
 1;
